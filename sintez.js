@@ -1,6 +1,6 @@
 export { encodeWAV, evaluate, generatePCM, tokenize, typeify };
 
-// sample[n]= A ⋅ sin(2 * π * f * (n / R)​)
+// sample[n]= A ⋅ sin(2 * π * f * (n / R))
 
 // Where:
 //   A: Amplitude (max value based on bit depth, e.g., 32767 for 16-bit)
@@ -167,7 +167,6 @@ const evaluateNode = (expression, fullPCM) => {
 };
 
 const evaluate = (syntaxTree) => {
-    console.log("syntax tree:", syntaxTree);
     const fullPCM = [];
     syntaxTree.forEach((statement) => evaluateNode(statement, fullPCM));
     return fullPCM;
