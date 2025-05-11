@@ -47,8 +47,9 @@ Deno.test("Playing things", async (t) => {
             (tone 293.66 200)
           `;
 
+      const symbolTable = {};
       const tokens = tokenize(music);
-      const samples = evaluate(tokens);
+      const samples = evaluate(tokens, symbolTable);
 
       encodeWAV(samples);
 

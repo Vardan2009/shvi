@@ -127,44 +127,70 @@ const tokenize = (input) => {
   return loop([[]], graphemes);
 };
 
-const evaluateNode = (expression, fullPCM) => {
-  if (!Array.isArray(expression)) return expression;
+const evaluateNode = (expression, fullPCM, symbolTable) => {
+  if (typeof expression === "symbol") return symbolTable[expression];
+  else if (typeof expression === "number") return expression;
+
   switch (expression[0]) {
     case Symbol.for("add"): {
       let sum = 0;
       for (let i = 1; i < expression.length; ++i)
-        sum += evaluateNode(expression[i]);
+        sum += evaluateNode(expression[i], fullPCM, symbolTable);
       return sum;
     }
     case Symbol.for("sub"): {
       let diff = evaluateNode(expression[1]);
       for (let i = 2; i < expression.length; ++i)
-        diff += evaluateNode(expression[i]);
+        diff += evaluateNode(expression[i], fullPCM, symbolTable);
       return diff;
     }
     case Symbol.for("mul"): {
       let factor = 0;
       for (let i = 1; i < expression.length; ++i)
-        factor *= evaluateNode(expression[i]);
+        factor *= evaluateNode(expression[i], fullPCM, symbolTable);
       return factor;
     }
     case Symbol.for("div"): {
-      let quotient = evaluateNode(expression[1]);
+      let quotient = evaluateNode(expression[1], fullPCM, symbolTable);
       for (let i = 2; i < expression.length; ++i)
-        quotient /= evaluateNode(expression[i]);
+        quotient /= evaluateNode(expression[i], fullPCM, symbolTable);
       return quotient;
     }
     case Symbol.for("tone"): {
       fullPCM.push(
-        ...generatePCM(evaluateNode(expression[1]), evaluateNode(expression[2]))
+        ...generatePCM(
+          evaluateNode(expression[1], fullPCM, symbolTable),
+          evaluateNode(expression[2], fullPCM, symbolTable)
+        )
+      );
+      return undefined;
+    }
+    case Symbol.for("define"): {
+      const value = evaluateNode(expression[2], fullPCM, symbolTable);
+      symbolTable[expression[1]] = value;
+      return value;
+    }
+    case Symbol.for("print"): {
+      console.log(
+        ...expression.slice(1).map((n) => evaluateNode(n, fullPCM, symbolTable))
       );
       return undefined;
     }
   }
 };
 
-const evaluate = (syntaxTree) => {
+const evaluate = (syntaxTree, symbolTable) => {
   const fullPCM = [];
-  syntaxTree.forEach((statement) => evaluateNode(statement, fullPCM));
+  syntaxTree.forEach((statement) =>
+    evaluateNode(statement, fullPCM, symbolTable)
+  );
   return fullPCM;
 };
+
+// REPL Shell for Debugging
+// const globalSymbolTable = {};
+// while (true) {
+//   const ln = prompt("Shvi 🪈 ]");
+//   const syntaxTree = tokenize(ln);
+//   evaluate(syntaxTree, globalSymbolTable);
+// }
