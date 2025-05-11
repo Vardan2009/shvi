@@ -71,7 +71,7 @@ const tokenize = (input) => {
     const [currentScope, parentScope, ...outerScopes] = scope;
 
     const typeify = (token) => {
-      const parsedInt = Number.parseInt(token, 10);
+      const parsedInt = Number.parseFloat(token, 10);
       return Number.isNaN(parsedInt) ? atom(token) : parsedInt;
     };
 
