@@ -47,23 +47,24 @@ const createNoteFrequencySymbolTable = () => {
 };
 
 const globalSymbolTable = createNoteFrequencySymbolTable();
-async function processFile(filePath) {
+
+const processFile = async (filePath) => {
   try {
-    const fileContent = await Deno.readTextFile(filePath); // Read the entire file
-    const syntaxTree = tokenize(fileContent); // Tokenize the whole content at once
+    const fileContent = await Deno.readTextFile(filePath);
+    const syntaxTree = tokenize(fileContent);
     const pcm = [];
-    evaluate(syntaxTree, globalSymbolTable, pcm); // Evaluate the entire content
+    evaluate(syntaxTree, globalSymbolTable, pcm);
 
     if (pcm.length > 0) {
       encodeWAV(pcm);
       play("output.wav");
     }
   } catch (err) {
-    console.error("Error processing file:", err);
+    console.error("Shvi: Error processing file:", err);
   }
-}
+};
 
-function runREPL() {
+const runREPL = () => {
   while (true) {
     const ln = prompt("Shvi 🪈 ] ");
     if (ln === null || ln.trim() === "") break;
@@ -75,17 +76,17 @@ function runREPL() {
       play("output.wav");
     }
   }
-}
+};
 
-async function main() {
+const main = async () => {
   if (Deno.args.length > 0) {
     const filePath = Deno.args[0];
     try {
       await processFile(filePath);
     } catch (err) {
-      console.error("Error processing file:", err);
+      console.error("Shvi: Error processing file:", err);
     }
   } else runREPL();
-}
+};
 
 await main();

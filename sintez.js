@@ -136,7 +136,7 @@ const evaluateNode = (expression, fullPCM, symbolTable) => {
   if (typeof expression === "symbol") {
     if (expression in symbolTable) return symbolTable[expression];
     else {
-      console.error(`Definition for ${expression.toString()} not found`);
+      console.error(`Shvi: Definition for ${expression.toString()} not found`);
       return;
     }
   } else if (typeof expression === "number") return expression;
@@ -206,7 +206,9 @@ const evaluateNode = (expression, fullPCM, symbolTable) => {
       if (expression[0] in symbolTable)
         evaluateNode(symbolTable[expression[0]], fullPCM, symbolTable);
       else {
-        console.error(`Definition for ${expression.toString()} not found`);
+        console.error(
+          `Shvi: Definition for ${expression.toString()} not found`
+        );
         return;
       }
       break;
