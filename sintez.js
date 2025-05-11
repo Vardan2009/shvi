@@ -26,14 +26,15 @@ function generatePCM(frequency, duration) {
 
 async function encodeWAV(samples, output = "output.wav", sampleRate = 44100) {
   const headerSize = 44;
-  const dataSize = samples.length * 2;
+  const numChannels = 2; // stereo
+  const bytesPerSample = 2; // 16bit pcm
+  const dataSize = samples.length * numChannels * bytesPerSample;
   const buffer = new ArrayBuffer(headerSize + dataSize);
   const view = new DataView(buffer);
 
   const writeString = (offset, str) => {
-    for (let i = 0; i < str.length; i++) {
+    for (let i = 0; i < str.length; i++)
       view.setUint8(offset + i, str.charCodeAt(i));
-    }
   };
 
   writeString(0, "RIFF");
@@ -42,16 +43,19 @@ async function encodeWAV(samples, output = "output.wav", sampleRate = 44100) {
   writeString(12, "fmt ");
   view.setUint32(16, 16, true);
   view.setUint16(20, 1, true);
-  view.setUint16(22, 2, true);
+  view.setUint16(22, numChannels, true);
   view.setUint32(24, sampleRate, true);
-  view.setUint32(28, sampleRate * 4, true);
-  view.setUint16(32, 4, true);
+  view.setUint32(28, sampleRate * numChannels * bytesPerSample, true);
+  view.setUint16(32, numChannels * bytesPerSample, true);
   view.setUint16(34, 16, true);
   writeString(36, "data");
   view.setUint32(40, dataSize, true);
 
   for (let i = 0; i < samples.length; i++) {
-    view.setInt16(headerSize + i * 2, samples[i], true);
+    const sample = samples[i];
+    const offset = headerSize + i * numChannels * bytesPerSample;
+    view.setInt16(offset, sample, true); // left channel
+    view.setInt16(offset + bytesPerSample, sample, true); // right channel
   }
 
   await Deno.writeFile(output, new Uint8Array(buffer));
