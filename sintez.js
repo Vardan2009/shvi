@@ -61,7 +61,7 @@ async function encodeWAV(samples, output = "output.wav", sampleRate = 44100) {
   await Deno.writeFile(output, new Uint8Array(buffer));
 }
 
-const atom = (name) => Symbol.for(name);
+const atom = (name) => Symbol.for(name.trim());
 
 const typeify = (token) => {
   if (!isNaN(parseFloat(token))) return parseFloat(token);
@@ -112,6 +112,7 @@ const tokenize = (input) => {
       }
       case " ":
       case "\t":
+      case "\r":
       case "\n": {
         const updatedCurrentScope =
           tokenBuffer.length > 0
@@ -132,8 +133,13 @@ const tokenize = (input) => {
 };
 
 const evaluateNode = (expression, fullPCM, symbolTable) => {
-  if (typeof expression === "symbol") return symbolTable[expression];
-  else if (typeof expression === "number") return expression;
+  if (typeof expression === "symbol") {
+    if (expression in symbolTable) return symbolTable[expression];
+    else {
+      console.error(`Definition for ${expression.toString()} not found`);
+      return;
+    }
+  } else if (typeof expression === "number") return expression;
 
   switch (expression[0]) {
     case Symbol.for("add"): {
@@ -197,7 +203,12 @@ const evaluateNode = (expression, fullPCM, symbolTable) => {
       return undefined;
     }
     default:
-      evaluateNode(symbolTable[expression[0]], fullPCM, symbolTable);
+      if (expression[0] in symbolTable)
+        evaluateNode(symbolTable[expression[0]], fullPCM, symbolTable);
+      else {
+        console.error(`Definition for ${expression.toString()} not found`);
+        return;
+      }
       break;
   }
 };
