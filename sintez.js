@@ -166,9 +166,8 @@ const evaluateNode = (expression, fullPCM, symbolTable) => {
       return undefined;
     }
     case Symbol.for("define"): {
-      const value = evaluateNode(expression[2], fullPCM, symbolTable);
-      symbolTable[expression[1]] = value;
-      return value;
+      symbolTable[expression[1]] = expression[2];
+      return undefined;
     }
     case Symbol.for("print"): {
       console.log(
@@ -176,13 +175,31 @@ const evaluateNode = (expression, fullPCM, symbolTable) => {
       );
       return undefined;
     }
+    case Symbol.for("silence"): {
+      fullPCM.push(
+        ...generatePCM(0, evaluateNode(expression[1], fullPCM, symbolTable))
+      );
+      return undefined;
+    }
+    case Symbol.for("repeat"): {
+      const times = evaluateNode(expression[1], fullPCM, symbolTable);
+      for (let i = 0; i < times; ++i)
+        evaluateNode(expression[2], fullPCM, symbolTable);
+      return undefined;
+    }
+    case Symbol.for("sequence"): {
+      for (let i = 1; i < expression.length; ++i)
+        evaluateNode(expression[i], fullPCM, symbolTable);
+      return undefined;
+    }
+    default:
+      evaluateNode(symbolTable[expression[0]], fullPCM, symbolTable);
+      break;
   }
 };
 
-const evaluate = (syntaxTree, symbolTable) => {
-  const fullPCM = [];
+const evaluate = (syntaxTree, symbolTable, fullPCM) => {
   syntaxTree.forEach((statement) =>
     evaluateNode(statement, fullPCM, symbolTable)
   );
-  return fullPCM;
 };

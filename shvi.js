@@ -4,7 +4,8 @@ const globalSymbolTable = {};
 while (true) {
   const ln = prompt("Shvi 🪈 ]");
   const syntaxTree = tokenize(ln);
-  const pcm = evaluate(syntaxTree, globalSymbolTable);
+  const pcm = [];
+  evaluate(syntaxTree, globalSymbolTable, pcm);
   if (pcm.length > 0) {
     encodeWAV(pcm);
     play("output.wav");
