@@ -9,4 +9,3 @@ deno.lock
 *.wav
 
 .vscode/**/*
-!.vscode/settings.json
