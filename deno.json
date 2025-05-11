@@ -1,3 +1,6 @@
 {
-  "name": "shvi"
+  "tasks": {
+    "dev": "deno run --watch ./shvi.js",
+    "tests": "deno test --watch --allow-all ./shvi.test.js"
+  }
 }
