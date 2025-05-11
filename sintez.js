@@ -186,11 +186,3 @@ const evaluate = (syntaxTree, symbolTable) => {
   );
   return fullPCM;
 };
-
-// REPL Shell for Debugging
-// const globalSymbolTable = {};
-// while (true) {
-//   const ln = prompt("Shvi 🪈 ]");
-//   const syntaxTree = tokenize(ln);
-//   evaluate(syntaxTree, globalSymbolTable);
-// }
