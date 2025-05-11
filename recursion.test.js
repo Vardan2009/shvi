@@ -5,8 +5,12 @@ Deno.test("Recursion", async (t) => {
         name: "reverse capitalize a string",
         fn: () => {
             const reverseCapitalize = (str) => {
-                const loop = (str, acc) => {
-                    throw new Error("Not implemented");
+                const loop = ([currentChar, ...rest], acc) => {
+                    if (!currentChar) return acc.join("");
+
+                    if (currentChar >= "A" && currentChar <= "Z")
+                        return loop(rest, [...acc, currentChar.toLowerCase()]);
+                    else return loop(rest, [...acc, currentChar.toUpperCase()]);
                 };
 
                 return loop(str, "");
@@ -21,8 +25,10 @@ Deno.test("Recursion", async (t) => {
         name: "find the maximum value in a list",
         fn: () => {
             const max = (numbers) => {
-                const loop = (numbers, maxValue) => {
-                    throw new Error("Not implemented");
+                const loop = ([currentNumber, ...rest], maxValue) => {
+                    if (!currentNumber) return maxValue;
+
+                    return loop(rest, Math.max(currentNumber, maxValue));
                 };
 
                 return loop(numbers, -Infinity);
@@ -41,8 +47,21 @@ Deno.test("Recursion", async (t) => {
     await t.step({
         name: "remove substrings from a string",
         fn: () => {
-            const strip = (str, substr) => {
-                throw new Error("Not implemented");
+            const strip = (restChars, substr, matchBuffer = "") => {
+                if (restChars.length == 0) return matchBuffer;
+
+                if (restChars.startsWith(substr))
+                    return strip(
+                        restChars.slice(substr.length),
+                        substr,
+                        matchBuffer
+                    );
+                else
+                    return strip(
+                        restChars.slice(1),
+                        substr,
+                        matchBuffer + restChars[0]
+                    );
             };
 
             const result = strip("Skies are grey in Greece", "re");
