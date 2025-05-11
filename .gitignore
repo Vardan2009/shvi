@@ -7,3 +7,6 @@ deno.lock
 **/.lsp
 
 *.wav
+
+.vscode/**/*
+!.vscode/settings.json
