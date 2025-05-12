@@ -73,6 +73,107 @@ const tokenize = (input) => {
   return loop([[]], graphemes);
 };
 
+const builtinCommands = {
+  [Symbol.for("add")]: {
+    minOperandCount: 1,
+    fn: (expression, fullPCM, symbolTable) => {
+      let sum = 0;
+      for (let i = 1; i < expression.length; ++i)
+        sum += evaluateNode(expression[i], fullPCM, symbolTable);
+      return sum;
+    },
+  },
+  [Symbol.for("sub")]: {
+    minOperandCount: 1,
+    fn: (expression, fullPCM, symbolTable) => {
+      let diff = evaluateNode(expression[1]);
+      for (let i = 2; i < expression.length; ++i)
+        diff += evaluateNode(expression[i], fullPCM, symbolTable);
+      return diff;
+    },
+  },
+  [Symbol.for("mul")]: {
+    minOperandCount: 1,
+    fn: (expression, fullPCM, symbolTable) => {
+      let factor = 0;
+      for (let i = 1; i < expression.length; ++i)
+        factor *= evaluateNode(expression[i], fullPCM, symbolTable);
+      return factor;
+    },
+  },
+  [Symbol.for("div")]: {
+    minOperandCount: 1,
+    fn: (expression, fullPCM, symbolTable) => {
+      let quotient = evaluateNode(expression[1], fullPCM, symbolTable);
+      for (let i = 2; i < expression.length; ++i)
+        quotient /= evaluateNode(expression[i], fullPCM, symbolTable);
+      return quotient;
+    },
+  },
+  [Symbol.for("tone")]: {
+    operandCount: 2,
+    fn: (expression, fullPCM, symbolTable) => {
+      fullPCM.push(
+        ...generatePCM(
+          evaluateNode(expression[1], fullPCM, symbolTable),
+          evaluateNode(expression[2], fullPCM, symbolTable)
+        )
+      );
+      return undefined;
+    },
+  },
+  [Symbol.for("define")]: {
+    operandCount: 2,
+    fn: (expression, fullPCM, symbolTable) => {
+      symbolTable[expression[1]] = expression[2];
+      return undefined;
+    },
+  },
+  [Symbol.for("let")]: {
+    operandCount: 2,
+    fn: (expression, fullPCM, symbolTable) => {
+      const val = evaluateNode(expression[2], fullPCM, symbolTable);
+      symbolTable[expression[1]] = val;
+      return val;
+    },
+  },
+  [Symbol.for("print")]: {
+    minOperandCount: 1,
+    fn: (expression, fullPCM, symbolTable) => {
+      console.log(
+        ...expression.slice(1).map((n) => evaluateNode(n, fullPCM, symbolTable))
+      );
+      return undefined;
+    },
+  },
+  [Symbol.for("silence")]: {
+    operandCount: 1,
+    fn: (expression, fullPCM, symbolTable) => {
+      fullPCM.push(
+        ...generatePCM(0, evaluateNode(expression[1], fullPCM, symbolTable))
+      );
+      return undefined;
+    },
+  },
+  [Symbol.for("repeat")]: {
+    operandCount: 2,
+    fn: (expression, fullPCM, symbolTable) => {
+      const times = evaluateNode(expression[1], fullPCM, symbolTable);
+      for (let i = 0; i < times; ++i)
+        evaluateNode(expression[2], fullPCM, symbolTable);
+      return undefined;
+    },
+  },
+  [Symbol.for("sequence")]: {
+    minOperandCount: 0,
+    fn: (expression, fullPCM, symbolTable) => {
+      for (let i = 1; i < expression.length; ++i)
+        evaluateNode(expression[i], fullPCM, symbolTable);
+      return undefined;
+    },
+  },
+};
+
 const evaluateNode = (expression, fullPCM, symbolTable) => {
   if (typeof expression === "symbol") {
     if (expression in symbolTable) return symbolTable[expression];
@@ -82,82 +183,36 @@ const evaluateNode = (expression, fullPCM, symbolTable) => {
     }
   } else if (typeof expression === "number") return expression;
 
-  switch (expression[0]) {
-    case Symbol.for("add"): {
-      let sum = 0;
-      for (let i = 1; i < expression.length; ++i)
-        sum += evaluateNode(expression[i], fullPCM, symbolTable);
-      return sum;
-    }
-    case Symbol.for("sub"): {
-      let diff = evaluateNode(expression[1]);
-      for (let i = 2; i < expression.length; ++i)
-        diff += evaluateNode(expression[i], fullPCM, symbolTable);
-      return diff;
-    }
-    case Symbol.for("mul"): {
-      let factor = 0;
-      for (let i = 1; i < expression.length; ++i)
-        factor *= evaluateNode(expression[i], fullPCM, symbolTable);
-      return factor;
-    }
-    case Symbol.for("div"): {
-      let quotient = evaluateNode(expression[1], fullPCM, symbolTable);
-      for (let i = 2; i < expression.length; ++i)
-        quotient /= evaluateNode(expression[i], fullPCM, symbolTable);
-      return quotient;
-    }
-    case Symbol.for("tone"): {
-      fullPCM.push(
-        ...generatePCM(
-          evaluateNode(expression[1], fullPCM, symbolTable),
-          evaluateNode(expression[2], fullPCM, symbolTable)
-        )
+  if (expression[0] in builtinCommands) {
+    const command = builtinCommands[expression[0]];
+    if (
+      command.minOperandCount != undefined &&
+      expression.length - 1 < command.minOperandCount
+    ) {
+      console.error(
+        `Shvi: ${expression[0].description} takes at least ${command.minOperandCount} operands`
       );
-      return undefined;
+      return;
     }
-    case Symbol.for("define"): {
-      symbolTable[expression[1]] = expression[2];
-      return undefined;
-    }
-    case Symbol.for("let"): {
-      const val = evaluateNode(expression[2], fullPCM, symbolTable);
-      symbolTable[expression[1]] = val;
-      return val;
-    }
-    case Symbol.for("print"): {
-      console.log(
-        ...expression.slice(1).map((n) => evaluateNode(n, fullPCM, symbolTable))
+
+    if (
+      command.operandCount != undefined &&
+      expression.length - 1 != command.operandCount
+    ) {
+      console.error(
+        `Shvi: ${expression[0].description} takes ${command.operandCount} operands`
       );
-      return undefined;
+      return;
     }
-    case Symbol.for("silence"): {
-      fullPCM.push(
-        ...generatePCM(0, evaluateNode(expression[1], fullPCM, symbolTable))
-      );
-      return undefined;
+
+    return command.fn(expression, fullPCM, symbolTable);
+  } else {
+    if (expression[0] in symbolTable)
+      evaluateNode(symbolTable[expression[0]], fullPCM, symbolTable);
+    else {
+      console.error(`Shvi: Definition for ${expression.toString()} not found`);
+      return;
     }
-    case Symbol.for("repeat"): {
-      const times = evaluateNode(expression[1], fullPCM, symbolTable);
-      for (let i = 0; i < times; ++i)
-        evaluateNode(expression[2], fullPCM, symbolTable);
-      return undefined;
-    }
-    case Symbol.for("sequence"): {
-      for (let i = 1; i < expression.length; ++i)
-        evaluateNode(expression[i], fullPCM, symbolTable);
-      return undefined;
-    }
-    default:
-      if (expression[0] in symbolTable)
-        evaluateNode(symbolTable[expression[0]], fullPCM, symbolTable);
-      else {
-        console.error(
-          `Shvi: Definition for ${expression.toString()} not found`
-        );
-        return;
-      }
-      break;
   }
 };
 
