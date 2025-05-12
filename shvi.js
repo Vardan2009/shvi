@@ -66,7 +66,7 @@ const processFile = async (filePath) => {
 
 const runREPL = () => {
   while (true) {
-    const ln = prompt("Shvi 🪈 ] ");
+    const ln = prompt("Shvi %");
     if (ln === null || ln.trim() === "") break;
     const syntaxTree = tokenize(ln);
     const pcm = [];
