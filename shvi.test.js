@@ -1,4 +1,5 @@
-import { encodeWAV, evaluate, generatePCM, tokenize } from "./sintez.js";
+import { encodeWAV, generatePCM } from "./sintez.js";
+import { tokenize, evaluate } from "./shvi.js";
 import { play } from "./util.js";
 
 Deno.test("Playing things", async (t) => {
@@ -19,7 +20,7 @@ Deno.test("Playing things", async (t) => {
   });
 
   await t.step({
-    name: "playing a D4 for two seconds",
+    name: "playing a D4 for 200 ms",
     fn: async () => {
       const music = `
             (tone 293.66 200)

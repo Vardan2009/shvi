@@ -1,92 +1,162 @@
-import { tokenize, evaluate, encodeWAV } from "./sintez.js";
-import { play } from "./util.js";
+export { tokenize, evaluate };
+import { generatePCM } from "./sintez.js";
 
-const createNoteFrequencySymbolTable = () => {
-  const table = {};
-  const noteNames = [
-    "C",
-    "C#",
-    "D",
-    "D#",
-    "E",
-    "F",
-    "F#",
-    "G",
-    "G#",
-    "A",
-    "A#",
-    "B",
-  ];
-  const enharmonics = {
-    "C#": "Db",
-    "D#": "Eb",
-    "F#": "Gb",
-    "G#": "Ab",
-    "A#": "Bb",
+const atom = (name) => Symbol.for(name.trim());
+
+const typeify = (token) => {
+  if (!isNaN(parseFloat(token))) return parseFloat(token);
+  else return atom(token);
+};
+
+const tokenize = (input) => {
+  const graphemes = Array.from(input.trim());
+
+  const loop = (scope, [currentChar, ...restChars], tokenBuffer = "") => {
+    const [currentScope, parentScope, ...outerScopes] = scope;
+
+    const typeify = (token) => {
+      const parsedInt = Number.parseFloat(token, 10);
+      return Number.isNaN(parsedInt) ? atom(token) : parsedInt;
+    };
+
+    if (!currentChar) {
+      return tokenBuffer.length > 0
+        ? [...currentScope, typeify(tokenBuffer)]
+        : currentScope;
+    }
+
+    switch (currentChar) {
+      case "(": {
+        const updatedCurrentScope =
+          tokenBuffer.length > 0
+            ? [...currentScope, typeify(tokenBuffer)]
+            : currentScope;
+
+        const newScope = parentScope
+          ? [[], updatedCurrentScope, parentScope, ...outerScopes]
+          : [[], updatedCurrentScope, ...outerScopes];
+
+        return loop(newScope, restChars);
+      }
+      case ")": {
+        const updatedCurrentScope =
+          tokenBuffer.length > 0
+            ? [...currentScope, typeify(tokenBuffer)]
+            : currentScope;
+
+        const inner = parentScope
+          ? [...parentScope, updatedCurrentScope]
+          : updatedCurrentScope;
+
+        return loop([inner, ...outerScopes], restChars, "");
+      }
+      case " ":
+      case "\t":
+      case "\r":
+      case "\n": {
+        const updatedCurrentScope =
+          tokenBuffer.length > 0
+            ? [...currentScope, typeify(tokenBuffer)]
+            : currentScope;
+
+        return loop(
+          [updatedCurrentScope, parentScope, ...outerScopes],
+          restChars
+        );
+      }
+      default:
+        return loop(scope, restChars, tokenBuffer + currentChar);
+    }
   };
 
-  for (let octave = 0; octave <= 8; octave++) {
-    for (let i = 0; i < noteNames.length; i++) {
-      const note = noteNames[i];
-      const noteName = note + octave;
-      const semitoneIndex = octave * 12 + i;
-      const frequency = +(440 * Math.pow(2, (semitoneIndex - 57) / 12)).toFixed(
-        2
+  return loop([[]], graphemes);
+};
+
+const evaluateNode = (expression, fullPCM, symbolTable) => {
+  if (typeof expression === "symbol") {
+    if (expression in symbolTable) return symbolTable[expression];
+    else {
+      console.error(`Shvi: Definition for ${expression.toString()} not found`);
+      return;
+    }
+  } else if (typeof expression === "number") return expression;
+
+  switch (expression[0]) {
+    case Symbol.for("add"): {
+      let sum = 0;
+      for (let i = 1; i < expression.length; ++i)
+        sum += evaluateNode(expression[i], fullPCM, symbolTable);
+      return sum;
+    }
+    case Symbol.for("sub"): {
+      let diff = evaluateNode(expression[1]);
+      for (let i = 2; i < expression.length; ++i)
+        diff += evaluateNode(expression[i], fullPCM, symbolTable);
+      return diff;
+    }
+    case Symbol.for("mul"): {
+      let factor = 0;
+      for (let i = 1; i < expression.length; ++i)
+        factor *= evaluateNode(expression[i], fullPCM, symbolTable);
+      return factor;
+    }
+    case Symbol.for("div"): {
+      let quotient = evaluateNode(expression[1], fullPCM, symbolTable);
+      for (let i = 2; i < expression.length; ++i)
+        quotient /= evaluateNode(expression[i], fullPCM, symbolTable);
+      return quotient;
+    }
+    case Symbol.for("tone"): {
+      fullPCM.push(
+        ...generatePCM(
+          evaluateNode(expression[1], fullPCM, symbolTable),
+          evaluateNode(expression[2], fullPCM, symbolTable)
+        )
       );
-
-      table[Symbol.for(noteName)] = frequency;
-
-      if (enharmonics[note]) {
-        const enharmonicName = enharmonics[note] + octave;
-        table[Symbol.for(enharmonicName)] = frequency;
+      return undefined;
+    }
+    case Symbol.for("define"): {
+      symbolTable[expression[1]] = expression[2];
+      return undefined;
+    }
+    case Symbol.for("print"): {
+      console.log(
+        ...expression.slice(1).map((n) => evaluateNode(n, fullPCM, symbolTable))
+      );
+      return undefined;
+    }
+    case Symbol.for("silence"): {
+      fullPCM.push(
+        ...generatePCM(0, evaluateNode(expression[1], fullPCM, symbolTable))
+      );
+      return undefined;
+    }
+    case Symbol.for("repeat"): {
+      const times = evaluateNode(expression[1], fullPCM, symbolTable);
+      for (let i = 0; i < times; ++i)
+        evaluateNode(expression[2], fullPCM, symbolTable);
+      return undefined;
+    }
+    case Symbol.for("sequence"): {
+      for (let i = 1; i < expression.length; ++i)
+        evaluateNode(expression[i], fullPCM, symbolTable);
+      return undefined;
+    }
+    default:
+      if (expression[0] in symbolTable)
+        evaluateNode(symbolTable[expression[0]], fullPCM, symbolTable);
+      else {
+        console.error(
+          `Shvi: Definition for ${expression.toString()} not found`
+        );
+        return;
       }
-    }
-  }
-
-  return table;
-};
-
-const globalSymbolTable = createNoteFrequencySymbolTable();
-
-const processFile = async (filePath) => {
-  try {
-    const fileContent = await Deno.readTextFile(filePath);
-    const syntaxTree = tokenize(fileContent);
-    const pcm = [];
-    evaluate(syntaxTree, globalSymbolTable, pcm);
-
-    if (pcm.length > 0) {
-      encodeWAV(pcm);
-      play("output.wav");
-    }
-  } catch (err) {
-    console.error("Shvi: Error processing file:", err);
+      break;
   }
 };
 
-const runREPL = () => {
-  while (true) {
-    const ln = prompt("Shvi %");
-    if (ln === null || ln.trim() === "") break;
-    const syntaxTree = tokenize(ln);
-    const pcm = [];
-    evaluate(syntaxTree, globalSymbolTable, pcm);
-    if (pcm.length > 0) {
-      encodeWAV(pcm);
-      play("output.wav");
-    }
-  }
+const evaluate = (syntaxTree, symbolTable, fullPCM) => {
+  syntaxTree.forEach((statement) =>
+    evaluateNode(statement, fullPCM, symbolTable)
+  );
 };
-
-const main = async () => {
-  if (Deno.args.length > 0) {
-    const filePath = Deno.args[0];
-    try {
-      await processFile(filePath);
-    } catch (err) {
-      console.error("Shvi: Error processing file:", err);
-    }
-  } else runREPL();
-};
-
-await main();
