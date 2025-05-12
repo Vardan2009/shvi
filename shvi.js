@@ -45,6 +45,12 @@ const tokenize = (input) => {
 
         return loop([inner, ...outerScopes], restChars, "");
       }
+      case ";": {
+        const lineEndIdx = restChars.indexOf("\n");
+
+        if (lineEndIdx == -1) return loop(scope, [], tokenBuffer);
+        else return loop(scope, restChars.slice(lineEndIdx + 1), tokenBuffer);
+      }
       case " ":
       case "\t":
       case "\r":
@@ -113,6 +119,11 @@ const evaluateNode = (expression, fullPCM, symbolTable) => {
     case Symbol.for("define"): {
       symbolTable[expression[1]] = expression[2];
       return undefined;
+    }
+    case Symbol.for("let"): {
+      const val = evaluateNode(expression[2], fullPCM, symbolTable);
+      symbolTable[expression[1]] = val;
+      return val;
     }
     case Symbol.for("print"): {
       console.log(
