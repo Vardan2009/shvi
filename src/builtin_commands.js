@@ -1,5 +1,5 @@
 export { builtinCommands };
-import { generatePCM } from "./sintez.js";
+import { generatePCM, mixPCM } from "./sintez.js";
 import { evaluateNode } from "./interpreter.js";
 
 const builtinCommands = {
@@ -98,6 +98,22 @@ const builtinCommands = {
     fn: (expression, fullPCM, symbolTable) => {
       for (let i = 1; i < expression.length; ++i)
         evaluateNode(expression[i], fullPCM, symbolTable);
+      return undefined;
+    },
+  },
+  [Symbol.for("parallel")]: {
+    minOperandCount: 0,
+    fn: (expression, fullPCM, symbolTable) => {
+      const PCMs = [];
+
+      for (let i = 1; i < expression.length; ++i) {
+        const commandPCM = [];
+        evaluateNode(expression[i], commandPCM, symbolTable);
+        PCMs.push(commandPCM);
+      }
+
+      fullPCM.push(...mixPCM(PCMs));
+
       return undefined;
     },
   },

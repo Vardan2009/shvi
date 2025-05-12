@@ -1,0 +1,3 @@
+(sequence (tone C4 1000) (tone E4 1000))
+
+(parallel (tone C4 1000) (tone E4 1000))
