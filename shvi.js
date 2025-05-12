@@ -74,7 +74,7 @@ const tokenize = (input) => {
 };
 
 const builtinCommands = {
-  [Symbol.for("add")]: {
+  [Symbol.for("+")]: {
     minOperandCount: 1,
     fn: (expression, fullPCM, symbolTable) => {
       let sum = 0;
@@ -83,7 +83,7 @@ const builtinCommands = {
       return sum;
     },
   },
-  [Symbol.for("sub")]: {
+  [Symbol.for("-")]: {
     minOperandCount: 1,
     fn: (expression, fullPCM, symbolTable) => {
       let diff = evaluateNode(expression[1]);
@@ -92,7 +92,7 @@ const builtinCommands = {
       return diff;
     },
   },
-  [Symbol.for("mul")]: {
+  [Symbol.for("*")]: {
     minOperandCount: 1,
     fn: (expression, fullPCM, symbolTable) => {
       let factor = 0;
@@ -101,7 +101,7 @@ const builtinCommands = {
       return factor;
     },
   },
-  [Symbol.for("div")]: {
+  [Symbol.for("/")]: {
     minOperandCount: 1,
     fn: (expression, fullPCM, symbolTable) => {
       let quotient = evaluateNode(expression[1], fullPCM, symbolTable);
@@ -124,7 +124,7 @@ const builtinCommands = {
   },
   [Symbol.for("define")]: {
     operandCount: 2,
-    fn: (expression, fullPCM, symbolTable) => {
+    fn: (expression, _fullPCM, symbolTable) => {
       symbolTable[expression[1]] = expression[2];
       return undefined;
     },

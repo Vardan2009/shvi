@@ -5,7 +5,7 @@
   ;; play freq tone for 100 ms
   (tone freq 100)       
   ;; add 10 to freq
-  (let freq (add freq 10))
+  (let freq (+ freq 10))
 ))
 
 ;; this will generate linear sound ranging from 100-1100Hz in 10 seconds
