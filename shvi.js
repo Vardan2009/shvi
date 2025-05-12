@@ -3,11 +3,6 @@ import { generatePCM } from "./sintez.js";
 
 const atom = (name) => Symbol.for(name.trim());
 
-const typeify = (token) => {
-  if (!isNaN(parseFloat(token))) return parseFloat(token);
-  else return atom(token);
-};
-
 const tokenize = (input) => {
   const graphemes = Array.from(input.trim());
 
