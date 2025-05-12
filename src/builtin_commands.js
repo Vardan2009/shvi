@@ -117,4 +117,21 @@ const builtinCommands = {
       return undefined;
     },
   },
+  [Symbol.for("chord")]: {
+    operandCount: 2,
+    fn: (expression, fullPCM, symbolTable) => {
+      const array = expression[1];
+      const duration = evaluateNode(expression[2], fullPCM, symbolTable);
+
+      const PCMs = [];
+
+      array.forEach((el) =>
+        PCMs.push(generatePCM(evaluateNode(el, fullPCM, symbolTable), duration))
+      );
+
+      fullPCM.push(...mixPCM(PCMs));
+
+      return undefined;
+    },
+  },
 };
