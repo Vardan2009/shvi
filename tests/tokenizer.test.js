@@ -1,4 +1,4 @@
-import { tokenize } from "./shvi.js";
+import { tokenize } from "../shvi.js";
 import { assertEquals } from "jsr:@std/assert";
 
 const atom = (name) => Symbol.for(name);

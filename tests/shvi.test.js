@@ -1,6 +1,6 @@
-import { encodeWAV, generatePCM } from "./sintez.js";
-import { tokenize, evaluate } from "./shvi.js";
-import { play } from "./util.js";
+import { encodeWAV, generatePCM } from "../sintez.js";
+import { tokenize, evaluate } from "../shvi.js";
+import { play } from "../util.js";
 
 Deno.test("Playing things", async (t) => {
   await t.step({
