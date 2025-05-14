@@ -154,4 +154,8 @@ const globalSymbolTable = {
   [Symbol.for("A#8")]: 7458.62,
   [Symbol.for("Bb8")]: 7458.62,
   [Symbol.for("B8")]: 7902.13,
+
+  // Instruments
+  // attack, decay,release (in ms)
+  [Symbol.for("piano")]: [200, 50, 200],
 };

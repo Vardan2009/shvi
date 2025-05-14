@@ -1,0 +1,14 @@
+(instrument piano (repeat 2
+  (sequence
+    (tone 500 500)
+    (tone 700 500)
+    (tone 200 500)
+    (tone 500 500)
+)))
+
+(sequence
+    (tone 500 500)
+    (tone 700 500)
+    (tone 200 500)
+    (tone 500 500)
+)

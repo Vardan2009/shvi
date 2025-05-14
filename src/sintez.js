@@ -8,16 +8,44 @@ export { encodeWAV, generatePCM, mixPCM };
 //   R: Sample rate (samples per second), typically 44100 Hz
 //   n: Sample number (integer), from 0 to R × duration − 1
 
-function generatePCM(frequency, duration) {
+function generatePCM(frequency, duration, envelope = [0, 0, 0]) {
   const amplitude = 32767;
   const sampleRate = 44100;
 
-  const numSamples = Math.floor(sampleRate * (duration / 1000));
+  if (!envelope || !Array.isArray(envelope)) {
+    console.error("Shvi: ADSR envelope invalid!");
+    return;
+  }
+
+  const [attack, decay, release] = envelope;
+
+  const totalSamples = Math.floor(sampleRate * (duration / 1000));
+  const attackSamples = Math.floor(sampleRate * (attack / 1000));
+  const decaySamples = Math.floor(sampleRate * (decay / 1000));
+  const releaseSamples = Math.floor(sampleRate * (release / 1000));
+  const sustainSamples = totalSamples -
+    (attackSamples + decaySamples + releaseSamples);
 
   const samples = [];
-  for (let i = 0; i < numSamples; i++) {
+  for (let i = 0; i < totalSamples; i++) {
+    let adsrFactor = 1;
+
+    if (i < attackSamples) {
+      adsrFactor = i / attackSamples;
+    } else if (i < attackSamples + decaySamples) {
+      const decayProgress = (i - attackSamples) / decaySamples;
+      adsrFactor = 1 - decayProgress * 0.3; // decay to 0.7
+    } else if (i < attackSamples + decaySamples + sustainSamples) {
+      adsrFactor = 0.7;
+    } else {
+      const releaseProgress = (i - (totalSamples - releaseSamples)) /
+        releaseSamples;
+      adsrFactor = 0.7 * (1 - releaseProgress);
+    }
+
     const t = i / sampleRate;
-    const sample = amplitude * Math.sin(2 * Math.PI * frequency * t);
+    const sample = amplitude * adsrFactor *
+      Math.sin(2 * Math.PI * frequency * t);
     samples.push(sample);
   }
 

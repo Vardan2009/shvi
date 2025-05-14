@@ -70,7 +70,12 @@ const tokenize = (input) => {
   return loop([[]], graphemes);
 };
 
-const evaluateNode = (expression, fullPCM, symbolTable) => {
+const evaluateNode = (
+  expression,
+  fullPCM,
+  symbolTable,
+  envelope = undefined,
+) => {
   if (typeof expression === "symbol") {
     if (expression in symbolTable) return symbolTable[expression];
     else {
@@ -107,10 +112,10 @@ const evaluateNode = (expression, fullPCM, symbolTable) => {
       return;
     }
 
-    return command.fn(expression, fullPCM, symbolTable);
+    return command.fn(expression, fullPCM, symbolTable, envelope);
   } else {
     if (expression[0] in symbolTable) {
-      evaluateNode(symbolTable[expression[0]], fullPCM, symbolTable);
+      evaluateNode(symbolTable[expression[0]], fullPCM, symbolTable, envelope);
     } else {
       console.error(
         `Shvi: Definition for ${Symbol.keyFor(expression[0])} not found`,
