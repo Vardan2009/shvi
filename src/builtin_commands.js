@@ -17,14 +17,14 @@ const builtinCommands = {
     fn: (expression, fullPCM, symbolTable) => {
       let diff = evaluateNode(expression[1]);
       for (let i = 2; i < expression.length; ++i)
-        diff += evaluateNode(expression[i], fullPCM, symbolTable);
+        diff -= evaluateNode(expression[i], fullPCM, symbolTable);
       return diff;
     },
   },
   [Symbol.for("*")]: {
     minOperandCount: 1,
     fn: (expression, fullPCM, symbolTable) => {
-      let factor = 0;
+      let factor = 1;
       for (let i = 1; i < expression.length; ++i)
         factor *= evaluateNode(expression[i], fullPCM, symbolTable);
       return factor;
