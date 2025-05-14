@@ -146,12 +146,12 @@ const builtinCommands = {
       );
 
       const PCMs = [];
-
       array.forEach((el) =>
         PCMs.push(
           generatePCM(
             evaluateNode(el, fullPCM, symbolTable, envelope),
             duration,
+            envelope,
           ),
         )
       );
@@ -164,10 +164,10 @@ const builtinCommands = {
   [Symbol.for("instrument")]: {
     operandCount: 2,
     fn: (expression, fullPCM, symbolTable, _envelope) => {
-      const newenvelope = evaluateNode(expression[1], fullPCM, symbolTable);
+      const newEnvelope = evaluateNode(expression[1], fullPCM, symbolTable);
       const statement = expression[2];
 
-      return evaluateNode(statement, fullPCM, symbolTable, newenvelope);
+      return evaluateNode(statement, fullPCM, symbolTable, newEnvelope);
     },
   },
 };
