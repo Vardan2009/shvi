@@ -164,7 +164,9 @@ const builtinCommands = {
   [Symbol.for("instrument")]: {
     operandCount: 2,
     fn: (expression, fullPCM, symbolTable, _envelope) => {
-      const newEnvelope = evaluateNode(expression[1], fullPCM, symbolTable);
+      const newEnvelope = typeof expression[1] === "symbol"
+        ? evaluateNode(expression[1], fullPCM, symbolTable)
+        : expression[1];
       const statement = expression[2];
 
       return evaluateNode(statement, fullPCM, symbolTable, newEnvelope);
