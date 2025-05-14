@@ -1,14 +1,8 @@
 (instrument piano (repeat 2
   (sequence
-    (tone 500 500)
-    (tone 700 500)
-    (tone 200 500)
-    (tone 500 500)
+    (tone C4 500)
+    (tone E4 500)
+    (tone G4 500)
+    (tone E4 500)
+    (chord (C4 E4 G4) 500)
 )))
-
-(sequence
-    (tone 500 500)
-    (tone 700 500)
-    (tone 200 500)
-    (tone 500 500)
-)
