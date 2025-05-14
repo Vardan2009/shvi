@@ -1,53 +1,7 @@
 import { encodeWAV } from "./src/sintez.js";
 import { play } from "./src/util.js";
-import { tokenize, evaluate } from "./src/interpreter.js";
-
-const createNoteFrequencySymbolTable = () => {
-  const table = {};
-  const noteNames = [
-    "C",
-    "C#",
-    "D",
-    "D#",
-    "E",
-    "F",
-    "F#",
-    "G",
-    "G#",
-    "A",
-    "A#",
-    "B",
-  ];
-  const enharmonics = {
-    "C#": "Db",
-    "D#": "Eb",
-    "F#": "Gb",
-    "G#": "Ab",
-    "A#": "Bb",
-  };
-
-  for (let octave = 0; octave <= 8; octave++) {
-    for (let i = 0; i < noteNames.length; i++) {
-      const note = noteNames[i];
-      const noteName = note + octave;
-      const semitoneIndex = octave * 12 + i;
-      const frequency = +(440 * Math.pow(2, (semitoneIndex - 57) / 12)).toFixed(
-        2
-      );
-
-      table[Symbol.for(noteName)] = frequency;
-
-      if (enharmonics[note]) {
-        const enharmonicName = enharmonics[note] + octave;
-        table[Symbol.for(enharmonicName)] = frequency;
-      }
-    }
-  }
-
-  return table;
-};
-
-const globalSymbolTable = createNoteFrequencySymbolTable();
+import { evaluate, tokenize } from "./src/interpreter.js";
+import { globalSymbolTable } from "./symbolTable.js";
 
 const processFile = async (filePath) => {
   try {

@@ -1,4 +1,4 @@
-export { tokenize, evaluate, evaluateNode };
+export { evaluate, evaluateNode, tokenize };
 import { builtinCommands } from "./builtin_commands.js";
 
 const atom = (name) => Symbol.for(name.trim());
@@ -22,10 +22,9 @@ const tokenize = (input) => {
 
     switch (currentChar) {
       case "(": {
-        const updatedCurrentScope =
-          tokenBuffer.length > 0
-            ? [...currentScope, typeify(tokenBuffer)]
-            : currentScope;
+        const updatedCurrentScope = tokenBuffer.length > 0
+          ? [...currentScope, typeify(tokenBuffer)]
+          : currentScope;
 
         const newScope = parentScope
           ? [[], updatedCurrentScope, parentScope, ...outerScopes]
@@ -34,10 +33,9 @@ const tokenize = (input) => {
         return loop(newScope, restChars);
       }
       case ")": {
-        const updatedCurrentScope =
-          tokenBuffer.length > 0
-            ? [...currentScope, typeify(tokenBuffer)]
-            : currentScope;
+        const updatedCurrentScope = tokenBuffer.length > 0
+          ? [...currentScope, typeify(tokenBuffer)]
+          : currentScope;
 
         const inner = parentScope
           ? [...parentScope, updatedCurrentScope]
@@ -55,14 +53,13 @@ const tokenize = (input) => {
       case "\t":
       case "\r":
       case "\n": {
-        const updatedCurrentScope =
-          tokenBuffer.length > 0
-            ? [...currentScope, typeify(tokenBuffer)]
-            : currentScope;
+        const updatedCurrentScope = tokenBuffer.length > 0
+          ? [...currentScope, typeify(tokenBuffer)]
+          : currentScope;
 
         return loop(
           [updatedCurrentScope, parentScope, ...outerScopes],
-          restChars
+          restChars,
         );
       }
       default:
@@ -78,7 +75,7 @@ const evaluateNode = (expression, fullPCM, symbolTable) => {
     if (expression in symbolTable) return symbolTable[expression];
     else {
       console.error(
-        `Shvi: Definition for ${Symbol.keyFor(expression[0])} not found`
+        `Shvi: Definition for ${Symbol.keyFor(expression[0])} not found`,
       );
       return;
     }
@@ -91,7 +88,9 @@ const evaluateNode = (expression, fullPCM, symbolTable) => {
       expression.length - 1 < command.minOperandCount
     ) {
       console.error(
-        `Shvi: ${expression[0].description} takes at least ${command.minOperandCount} operands`
+        `Shvi: ${
+          expression[0].description
+        } takes at least ${command.minOperandCount} operands`,
       );
       return;
     }
@@ -101,18 +100,20 @@ const evaluateNode = (expression, fullPCM, symbolTable) => {
       expression.length - 1 != command.operandCount
     ) {
       console.error(
-        `Shvi: ${expression[0].description} takes ${command.operandCount} operands`
+        `Shvi: ${
+          expression[0].description
+        } takes ${command.operandCount} operands`,
       );
       return;
     }
 
     return command.fn(expression, fullPCM, symbolTable);
   } else {
-    if (expression[0] in symbolTable)
+    if (expression[0] in symbolTable) {
       evaluateNode(symbolTable[expression[0]], fullPCM, symbolTable);
-    else {
+    } else {
       console.error(
-        `Shvi: Definition for ${Symbol.keyFor(expression[0])} not found`
+        `Shvi: Definition for ${Symbol.keyFor(expression[0])} not found`,
       );
       return;
     }
