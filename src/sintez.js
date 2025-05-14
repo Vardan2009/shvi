@@ -33,8 +33,9 @@ async function encodeWAV(samples, output = "output.wav", sampleRate = 44100) {
   const view = new DataView(buffer);
 
   const writeString = (offset, str) => {
-    for (let i = 0; i < str.length; i++)
+    for (let i = 0; i < str.length; i++) {
       view.setUint8(offset + i, str.charCodeAt(i));
+    }
   };
 
   writeString(0, "RIFF");

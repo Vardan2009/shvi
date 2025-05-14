@@ -8,9 +8,9 @@ Deno.test("Recursion", async (t) => {
         const loop = ([currentChar, ...rest], acc) => {
           if (!currentChar) return acc.join("");
 
-          if (currentChar >= "A" && currentChar <= "Z")
+          if (currentChar >= "A" && currentChar <= "Z") {
             return loop(rest, [...acc, currentChar.toLowerCase()]);
-          else return loop(rest, [...acc, currentChar.toUpperCase()]);
+          } else return loop(rest, [...acc, currentChar.toUpperCase()]);
         };
 
         return loop(str, "");
@@ -50,10 +50,11 @@ Deno.test("Recursion", async (t) => {
       const strip = (restChars, substr, matchBuffer = "") => {
         if (restChars.length == 0) return matchBuffer;
 
-        if (restChars.startsWith(substr))
+        if (restChars.startsWith(substr)) {
           return strip(restChars.slice(substr.length), substr, matchBuffer);
-        else
+        } else {
           return strip(restChars.slice(1), substr, matchBuffer + restChars[0]);
+        }
       };
 
       const result = strip("Skies are grey in Greece", "re");
