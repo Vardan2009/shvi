@@ -1,7 +1,6 @@
 export { builtinCommands };
-import { generatePCM, mixPCM } from "./sintez.js";
+import { generatePCM, mixPCM, pushSamplesToPCM } from "./sintez.js";
 import { evaluateNode } from "./interpreter.js";
-
 const builtinCommands = {
   [Symbol.for("+")]: {
     minOperandCount: 1,
@@ -51,13 +50,15 @@ const builtinCommands = {
   [Symbol.for("tone")]: {
     operandCount: 2,
     fn: (expression, fullPCM, symbolTable, envelope) => {
-      fullPCM.push(
-        ...generatePCM(
-          evaluateNode(expression[1], fullPCM, symbolTable, envelope),
-          evaluateNode(expression[2], fullPCM, symbolTable, envelope),
-          envelope,
-        ),
+      const [pcm, releasePCM] = generatePCM(
+        evaluateNode(expression[1], fullPCM, symbolTable, envelope),
+        evaluateNode(expression[2], fullPCM, symbolTable, envelope),
+        envelope,
       );
+
+      pushSamplesToPCM(fullPCM, [...pcm, ...releasePCM]);
+      fullPCM.pcmPtr += pcm.length;
+
       return undefined;
     },
   },
@@ -122,14 +123,22 @@ const builtinCommands = {
     minOperandCount: 0,
     fn: (expression, fullPCM, symbolTable, envelope) => {
       const PCMs = [];
-
       for (let i = 1; i < expression.length; ++i) {
-        const commandPCM = [];
+        const commandPCM = {
+          pcmArray: [],
+          pcmPtr: 0,
+        };
         evaluateNode(expression[i], commandPCM, symbolTable, envelope);
         PCMs.push(commandPCM);
       }
 
-      fullPCM.push(...mixPCM(PCMs));
+      const ptrIncrement = Math.max(...PCMs.map((pcm) => pcm.pcmPtr));
+      const samples = PCMs.map((pcm) => pcm.pcmArray);
+
+      // fullPCM.push(...mixPCM(PCMs));
+      pushSamplesToPCM(fullPCM, mixPCM(samples));
+
+      fullPCM.pcmPtr += ptrIncrement;
 
       return undefined;
     },
@@ -146,17 +155,20 @@ const builtinCommands = {
       );
 
       const PCMs = [];
-      array.forEach((el) =>
-        PCMs.push(
-          generatePCM(
-            evaluateNode(el, fullPCM, symbolTable, envelope),
-            duration,
-            envelope,
-          ),
-        )
-      );
+      const releasePCMs = [];
 
-      fullPCM.push(...mixPCM(PCMs));
+      array.forEach((el) => {
+        const [pcm, releasePcm] = generatePCM(
+          evaluateNode(el, fullPCM, symbolTable, envelope),
+          duration,
+          envelope,
+        );
+        PCMs.push(pcm);
+        releasePCMs.push(releasePcm);
+      });
+
+      pushSamplesToPCM(fullPCM, [...mixPCM(PCMs), ...mixPCM(releasePCMs)]);
+      fullPCM.pcmPtr += PCMs[0].length;
 
       return undefined;
     },
@@ -168,7 +180,6 @@ const builtinCommands = {
         ? evaluateNode(expression[1], fullPCM, symbolTable)
         : expression[1];
       const statement = expression[2];
-
       return evaluateNode(statement, fullPCM, symbolTable, newEnvelope);
     },
   },

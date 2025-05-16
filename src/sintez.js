@@ -1,4 +1,4 @@
-export { encodeWAV, generatePCM, mixPCM };
+export { encodeWAV, generatePCM, mixPCM, pushSamplesToPCM };
 
 // sample[n]= A ⋅ sin(2 * π * f * (n / R))
 
@@ -7,6 +7,19 @@ export { encodeWAV, generatePCM, mixPCM };
 //   f: Frequency (Hz), e.g., middle C = 261.63 Hz
 //   R: Sample rate (samples per second), typically 44100 Hz
 //   n: Sample number (integer), from 0 to R × duration − 1
+
+function pushSamplesToPCM(pcm, samples) {
+  for (let i = 0; i < samples.length; ++i) {
+    if (pcm.pcmArray.length <= pcm.pcmPtr + i) {
+      pcm.pcmArray.push(samples[i]);
+    } else {
+      pcm.pcmArray[pcm.pcmPtr + i] = mixSamples(
+        pcm.pcmArray[pcm.pcmPtr + i],
+        samples[i],
+      );
+    }
+  }
+}
 
 function generatePCM(frequency, duration, envelope = [0, 0, 0]) {
   const amplitude = 32767;
@@ -19,15 +32,21 @@ function generatePCM(frequency, duration, envelope = [0, 0, 0]) {
 
   const [attack, decay, release] = envelope;
 
-  const totalSamples = Math.floor(sampleRate * (duration / 1000));
+  const totalADSsamples = Math.floor(sampleRate * (duration / 1000));
   const attackSamples = Math.floor(sampleRate * (attack / 1000));
   const decaySamples = Math.floor(sampleRate * (decay / 1000));
-  const releaseSamples = Math.floor(sampleRate * (release / 1000));
-  const sustainSamples = totalSamples -
-    (attackSamples + decaySamples + releaseSamples);
+  const sustainSamples = totalADSsamples - (attackSamples + decaySamples);
 
-  const samples = [];
-  for (let i = 0; i < totalSamples; i++) {
+  if (sustainSamples < 0) {
+    sustainSamples = 0;
+  }
+
+  const releaseSampleCount = Math.floor(sampleRate * (release / 1000));
+
+  const adsSamples = [];
+  const releaseSamples = [];
+
+  for (let i = 0; i < totalADSsamples; i++) {
     let adsrFactor = 1;
 
     if (i < attackSamples) {
@@ -35,21 +54,26 @@ function generatePCM(frequency, duration, envelope = [0, 0, 0]) {
     } else if (i < attackSamples + decaySamples) {
       const decayProgress = (i - attackSamples) / decaySamples;
       adsrFactor = 1 - decayProgress * 0.3; // decay to 0.7
-    } else if (i < attackSamples + decaySamples + sustainSamples) {
-      adsrFactor = 0.7;
     } else {
-      const releaseProgress = (i - (totalSamples - releaseSamples)) /
-        releaseSamples;
-      adsrFactor = 0.7 * (1 - releaseProgress);
+      adsrFactor = 0.7; // sustain
     }
 
     const t = i / sampleRate;
     const sample = amplitude * adsrFactor *
       Math.sin(2 * Math.PI * frequency * t);
-    samples.push(sample);
+    adsSamples.push(sample);
   }
 
-  return samples;
+  for (let i = 0; i < releaseSampleCount; i++) {
+    const releaseProgress = i / releaseSampleCount;
+    const adsrFactor = 0.7 * (1 - releaseProgress);
+    const t = (totalADSsamples + i) / sampleRate;
+    const sample = amplitude * adsrFactor *
+      Math.sin(2 * Math.PI * frequency * t);
+    releaseSamples.push(sample);
+  }
+
+  return [adsSamples, releaseSamples];
 }
 
 async function encodeWAV(samples, output = "output.wav", sampleRate = 44100) {
@@ -88,6 +112,11 @@ async function encodeWAV(samples, output = "output.wav", sampleRate = 44100) {
   }
 
   await Deno.writeFile(output, new Uint8Array(buffer));
+}
+
+function mixSamples(a, b) {
+  const mixed = (a + b) / 2;
+  return Math.max(-32768, Math.min(32767, mixed));
 }
 
 function mixPCM(PCMs) {

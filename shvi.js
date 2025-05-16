@@ -7,11 +7,14 @@ const processFile = async (filePath) => {
   try {
     const fileContent = await Deno.readTextFile(filePath);
     const syntaxTree = tokenize(fileContent);
-    const pcm = [];
+    const pcm = {
+      pcmArray: [],
+      pcmPtr: 0,
+    };
     evaluate(syntaxTree, globalSymbolTable, pcm);
 
-    if (pcm.length > 0) {
-      encodeWAV(pcm);
+    if (pcm.pcmArray.length > 0) {
+      encodeWAV(pcm.pcmArray);
       play("output.wav");
     }
   } catch (err) {
@@ -24,10 +27,13 @@ const runREPL = () => {
     const ln = prompt("Shvi %");
     if (ln === null || ln.trim() === "") break;
     const syntaxTree = tokenize(ln);
-    const pcm = [];
+    const pcm = {
+      pcmArray: [],
+      pcmPtr: 0,
+    };
     evaluate(syntaxTree, globalSymbolTable, pcm);
-    if (pcm.length > 0) {
-      encodeWAV(pcm);
+    if (pcm.pcmArray.length > 0) {
+      encodeWAV(pcm.pcmArray);
       play("output.wav");
     }
   }
