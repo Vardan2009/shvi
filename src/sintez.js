@@ -33,31 +33,40 @@ function generatePCM(
   frequency,
   duration,
   envelope = [0, 0, 0],
-  startingSampleCount,
+  startingSampleCount = 0,
 ) {
   const amplitude = 32767;
   const sampleRate = 44100;
 
-  if (!envelope || !Array.isArray(envelope)) {
+  if (!envelope || !Array.isArray(envelope) || envelope.length !== 3) {
     console.error("Shvi: ADSR envelope invalid!");
     return;
   }
 
   const [attack, decay, release] = envelope;
 
-  const totalADSsamples = Math.floor(sampleRate * (duration / 1000));
-  const attackSamples = Math.floor(sampleRate * (attack / 1000));
-  const decaySamples = Math.floor(sampleRate * (decay / 1000));
+  const totalDurationSamples = Math.floor(sampleRate * (duration / 1000));
+  const releaseSamples = Math.floor(sampleRate * (release / 1000));
+
+  let attackSamples = Math.floor(sampleRate * (attack / 1000));
+  let decaySamples = Math.floor(sampleRate * (decay / 1000));
+
+  const totalADSamples = attackSamples + decaySamples;
+  if (totalADSamples > totalDurationSamples) {
+    const scale = totalDurationSamples / totalADSamples;
+    attackSamples = Math.floor(attackSamples * scale);
+    decaySamples = Math.floor(decaySamples * scale);
+  }
+
   const sustainSamples = Math.max(
-    totalADSsamples - (attackSamples + decaySamples),
+    0,
+    totalDurationSamples - (attackSamples + decaySamples),
   );
 
-  const releaseSampleCount = Math.floor(sampleRate * (release / 1000));
-
   const adsSamples = [];
-  const releaseSamples = [];
+  const releasePartSamples = [];
 
-  for (let i = 0; i < totalADSsamples; i++) {
+  for (let i = 0; i < totalDurationSamples; i++) {
     let adsrFactor = 1;
 
     if (i < attackSamples) {
@@ -75,15 +84,16 @@ function generatePCM(
     adsSamples.push(sample);
   }
 
-  for (let i = 0; i < releaseSampleCount; i++) {
-    const releaseProgress = i / releaseSampleCount;
+  for (let i = 0; i < releaseSamples; i++) {
+    const releaseProgress = i / releaseSamples;
     const adsrFactor = 0.7 * (1 - releaseProgress);
-    const t = (totalADSsamples + startingSampleCount + i) / sampleRate;
+    const t = (totalDurationSamples + startingSampleCount + i) / sampleRate;
     const sample = amplitude * adsrFactor *
       Math.sin(2 * Math.PI * frequency * t);
-    releaseSamples.push(sample);
+    releasePartSamples.push(sample);
   }
-  return [adsSamples, releaseSamples];
+
+  return [adsSamples, releasePartSamples];
 }
 
 async function encodeWAV(samples, output = "output.wav", sampleRate = 44100) {
