@@ -1,13 +1,11 @@
 (instrument piano (repeat 2
   (sequence
-    (tone C4 2000)
-    (tone E4 2000)
+    (tone C4 500)
+    (tone E4 500)
 
-    (tone G4 2000)
+    (tone G4 500)
 
-    (tone E4 2000)
-    (silence 2000)
+    (tone E4 500)
 
-    (chord (C4 E4 G4) 2000)
-    (silence 2000)
+    (chord (C4 E4 G4) 500)
 )))
