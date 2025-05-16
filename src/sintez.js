@@ -40,11 +40,10 @@ function generatePCM(
   const totalADSsamples = Math.floor(sampleRate * (duration / 1000));
   const attackSamples = Math.floor(sampleRate * (attack / 1000));
   const decaySamples = Math.floor(sampleRate * (decay / 1000));
-  const sustainSamples = totalADSsamples - (attackSamples + decaySamples);
-
-  if (sustainSamples < 0) {
-    sustainSamples = 0;
-  }
+  const sustainSamples = Math.max(
+    totalADSsamples - (attackSamples + decaySamples),
+    0,
+  );
 
   const releaseSampleCount = Math.floor(sampleRate * (release / 1000));
 
