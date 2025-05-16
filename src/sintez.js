@@ -1,4 +1,4 @@
-export { encodeWAV, generatePCM, mixPCM, pushSamplesToPCM };
+export { encodeWAV, generatePCM, mixPCM, pushSamplesToPCM, pushSilenceToPCM };
 
 // sample[n]= A ⋅ sin(2 * π * f * (n / R))
 
@@ -17,6 +17,14 @@ function pushSamplesToPCM(pcm, samples) {
         pcm.pcmArray[pcm.pcmPtr + i],
         samples[i],
       );
+    }
+  }
+}
+
+function pushSilenceToPCM(pcm, sampleCount) {
+  for (let i = 0; i < sampleCount; ++i) {
+    if (pcm.pcmArray.length <= pcm.pcmPtr + i) {
+      pcm.pcmArray.push(0);
     }
   }
 }
@@ -42,7 +50,6 @@ function generatePCM(
   const decaySamples = Math.floor(sampleRate * (decay / 1000));
   const sustainSamples = Math.max(
     totalADSsamples - (attackSamples + decaySamples),
-    0,
   );
 
   const releaseSampleCount = Math.floor(sampleRate * (release / 1000));
@@ -71,12 +78,11 @@ function generatePCM(
   for (let i = 0; i < releaseSampleCount; i++) {
     const releaseProgress = i / releaseSampleCount;
     const adsrFactor = 0.7 * (1 - releaseProgress);
-    const t = (totalADSsamples + i) / sampleRate;
+    const t = (totalADSsamples + startingSampleCount + i) / sampleRate;
     const sample = amplitude * adsrFactor *
       Math.sin(2 * Math.PI * frequency * t);
     releaseSamples.push(sample);
   }
-
   return [adsSamples, releaseSamples];
 }
 

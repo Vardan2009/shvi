@@ -1,5 +1,10 @@
 export { builtinCommands };
-import { generatePCM, mixPCM, pushSamplesToPCM } from "./sintez.js";
+import {
+  generatePCM,
+  mixPCM,
+  pushSamplesToPCM,
+  pushSilenceToPCM,
+} from "./sintez.js";
 import { evaluateNode } from "./interpreter.js";
 const builtinCommands = {
   [Symbol.for("+")]: {
@@ -92,15 +97,16 @@ const builtinCommands = {
   [Symbol.for("silence")]: {
     operandCount: 1,
     fn: (expression, fullPCM, symbolTable, envelope) => {
-      const [pcm, releasePCM] = generatePCM(
-        0,
-        evaluateNode(expression[1], fullPCM, symbolTable, envelope),
+      const duration = evaluateNode(
+        expression[1],
+        fullPCM,
+        symbolTable,
         envelope,
-        fullPCM.pcmPtr,
       );
+      const sampleCount = Math.floor((duration / 1000) * 44100);
 
-      pushSamplesToPCM(fullPCM, [...pcm, ...releasePCM]);
-      fullPCM.pcmPtr += pcm.length;
+      pushSilenceToPCM(fullPCM, sampleCount);
+      fullPCM.pcmPtr += sampleCount;
 
       return undefined;
     },
