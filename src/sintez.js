@@ -125,8 +125,12 @@ async function encodeWAV(samples, output = "output.wav", sampleRate = 44100) {
 }
 
 function mixSamples(a, b) {
-  const mixed = (a + b) / 2;
-  return Math.max(-32768, Math.min(32767, mixed));
+  const mixed = a + b;
+
+  if (mixed > 32767) return 32767;
+  if (mixed < -32768) return -32768;
+
+  return mixed;
 }
 
 function mixPCM(PCMs) {

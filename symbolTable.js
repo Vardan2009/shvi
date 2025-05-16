@@ -157,5 +157,5 @@ const globalSymbolTable = {
 
   // Instruments
   // attack, decay,release (in ms)
-  [Symbol.for("piano")]: [200, 50, 200],
+  [Symbol.for("piano")]: [1000, 50, 200],
 };
