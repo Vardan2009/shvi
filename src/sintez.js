@@ -148,18 +148,15 @@ function mixPCM(PCMs) {
   const maxLength = Math.max(...PCMs.map((pcm) => pcm.length));
   const mixed = new Int16Array(maxLength);
 
-  const scale = 1 / numChannels; // equal factor for each channel
-
   for (let i = 0; i < maxLength; i++) {
     let mixedSample = 0;
 
     for (let j = 0; j < numChannels; j++) {
       const sample = i < PCMs[j].length ? PCMs[j][i] : 0;
-      mixedSample += sample * scale;
+      mixedSample = mixSamples(mixedSample, sample / numChannels);
     }
 
-    // clamp to range of signed 16bit value
-    mixed[i] = Math.max(-32768, Math.min(32767, mixedSample));
+    mixed[i] = mixedSample;
   }
 
   return mixed;
