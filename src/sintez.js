@@ -21,7 +21,12 @@ function pushSamplesToPCM(pcm, samples) {
   }
 }
 
-function generatePCM(frequency, duration, envelope = [0, 0, 0]) {
+function generatePCM(
+  frequency,
+  duration,
+  envelope = [0, 0, 0],
+  startingSampleCount,
+) {
   const amplitude = 32767;
   const sampleRate = 44100;
 
@@ -58,7 +63,7 @@ function generatePCM(frequency, duration, envelope = [0, 0, 0]) {
       adsrFactor = 0.7; // sustain
     }
 
-    const t = i / sampleRate;
+    const t = (startingSampleCount + i) / sampleRate;
     const sample = amplitude * adsrFactor *
       Math.sin(2 * Math.PI * frequency * t);
     adsSamples.push(sample);

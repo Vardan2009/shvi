@@ -54,6 +54,7 @@ const builtinCommands = {
         evaluateNode(expression[1], fullPCM, symbolTable, envelope),
         evaluateNode(expression[2], fullPCM, symbolTable, envelope),
         envelope,
+        fullPCM.pcmPtr,
       );
 
       pushSamplesToPCM(fullPCM, [...pcm, ...releasePCM]);
@@ -95,6 +96,8 @@ const builtinCommands = {
         ...generatePCM(
           0,
           evaluateNode(expression[1], fullPCM, symbolTable, envelope),
+          [0, 0, 0],
+          fullPCM.pcmPtr,
         ),
       );
       return undefined;
@@ -162,6 +165,7 @@ const builtinCommands = {
           evaluateNode(el, fullPCM, symbolTable, envelope),
           duration,
           envelope,
+          fullPCM.pcmPtr,
         );
         PCMs.push(pcm);
         releasePCMs.push(releasePcm);
