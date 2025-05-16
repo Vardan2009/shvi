@@ -92,14 +92,16 @@ const builtinCommands = {
   [Symbol.for("silence")]: {
     operandCount: 1,
     fn: (expression, fullPCM, symbolTable, envelope) => {
-      fullPCM.push(
-        ...generatePCM(
-          0,
-          evaluateNode(expression[1], fullPCM, symbolTable, envelope),
-          [0, 0, 0],
-          fullPCM.pcmPtr,
-        ),
+      const [pcm, releasePCM] = generatePCM(
+        0,
+        evaluateNode(expression[1], fullPCM, symbolTable, envelope),
+        envelope,
+        fullPCM.pcmPtr,
       );
+
+      pushSamplesToPCM(fullPCM, [...pcm, ...releasePCM]);
+      fullPCM.pcmPtr += pcm.length;
+
       return undefined;
     },
   },
