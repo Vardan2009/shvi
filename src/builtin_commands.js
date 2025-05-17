@@ -196,6 +196,16 @@ const builtinCommands = {
       return evaluateNode(statement, fullPCM, symbolTable, newEnvelope);
     },
   },
+  [Symbol.for("lambda")]: {
+    operandCount: 2,
+    fn: (expression, fullPCM, symbolTable, _envelope) => {
+      return {
+        isLambda: true,
+        arguments: expression[1],
+        root: expression[2],
+      };
+    },
+  },
   [Symbol.for("wav")]: {
     operandCount: 1,
     fn: (expression, fullPCM, _symbolTable, _envelope) => {

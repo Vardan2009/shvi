@@ -15,7 +15,6 @@ const tokenize = (input) => {
     };
 
     if (!currentChar) {
-      console.log(currentScope);
       return tokenBuffer.length > 0
         ? [...currentScope, typeify(tokenBuffer)]
         : currentScope;
@@ -92,8 +91,12 @@ const evaluateNode = (
       return;
     }
   } else if (typeof expression === "number") return expression;
+  else if (expression.isLambda) return expression;
 
-  if (expression[0] in builtinCommands) {
+  if (
+    typeof expression[0] === "symbol" &&
+    expression[0] in builtinCommands
+  ) {
     const command = builtinCommands[expression[0]];
     if (
       command.minOperandCount != undefined &&
@@ -121,10 +124,33 @@ const evaluateNode = (
 
     return command.fn(expression, fullPCM, symbolTable, envelope);
   } else {
-    console.error(
-      `Shvi: ${Symbol.keyFor(expression[0])} is not a command`,
+    const func = evaluateNode(expression[0], fullPCM, symbolTable, envelope);
+    if (!func || !func.isLambda) {
+      console.error(
+        `Shvi: ${Symbol.keyFor(expression)} is not a command or a lambda`,
+      );
+      return;
+    }
+
+    const givenArguments = expression.slice(1);
+
+    if (func.arguments.length != givenArguments.length) {
+      console.error(
+        `Shvi: expected ${func.arguments.length} arguments, got ${givenArguments.length}`,
+      );
+      return;
+    }
+
+    const keys = func.arguments;
+    const values = givenArguments;
+    const symbolTableUpdate = Object.fromEntries(
+      keys.map((key, i) => [key, values[i]]),
     );
-    return;
+
+    return evaluateNode(func.root, fullPCM, {
+      ...symbolTable,
+      ...symbolTableUpdate,
+    }, envelope);
   }
 };
 
