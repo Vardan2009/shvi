@@ -1,5 +1,7 @@
 export { encodeWAV, generatePCM, mixPCM, pushSamplesToPCM, pushSilenceToPCM };
 
+import globals from "./globals.js";
+
 // sample[n]= A ⋅ sin(2 * π * f * (n / R))
 
 // Where:
@@ -35,8 +37,8 @@ function generatePCM(
   envelope = [0, 0, 0],
   startingSampleCount = 0,
 ) {
-  const amplitude = 32767;
-  const sampleRate = 44100;
+  const amplitude = globals.SAMPLE_MAX;
+  const sampleRate = globals.SAMPLE_RATE;
 
   if (!envelope || !Array.isArray(envelope) || envelope.length !== 3) {
     console.error("Shvi: ADSR envelope invalid!");
@@ -70,7 +72,7 @@ function generatePCM(
     let adsrFactor = 1;
 
     if (i < attackSamples) {
-      adsrFactor = i / attackSamples;
+      adsrFactor = (decaySamples == 0 ? 0.7 : 1) * (i / attackSamples);
     } else if (i < attackSamples + decaySamples) {
       const decayProgress = (i - attackSamples) / decaySamples;
       adsrFactor = 1 - decayProgress * 0.3; // decay to 0.7
@@ -96,10 +98,14 @@ function generatePCM(
   return [adsSamples, releasePartSamples];
 }
 
-async function encodeWAV(samples, output = "output.wav", sampleRate = 44100) {
+async function encodeWAV(samples, output = "output.wav") {
   const headerSize = 44;
-  const numChannels = 2; // stereo
-  const bytesPerSample = 2; // 16bit pcm
+  const numChannels = 2;
+
+  const bitsPerSample = globals.WAV_BITS;
+  const sampleRate = globals.SAMPLE_RATE;
+
+  const bytesPerSample = bitsPerSample / 8;
   const dataSize = samples.length * numChannels * bytesPerSample;
   const buffer = new ArrayBuffer(headerSize + dataSize);
   const view = new DataView(buffer);
@@ -120,44 +126,68 @@ async function encodeWAV(samples, output = "output.wav", sampleRate = 44100) {
   view.setUint32(24, sampleRate, true);
   view.setUint32(28, sampleRate * numChannels * bytesPerSample, true);
   view.setUint16(32, numChannels * bytesPerSample, true);
-  view.setUint16(34, 16, true);
+  view.setUint16(34, bitsPerSample, true);
   writeString(36, "data");
   view.setUint32(40, dataSize, true);
 
   for (let i = 0; i < samples.length; i++) {
     const sample = samples[i];
     const offset = headerSize + i * numChannels * bytesPerSample;
-    view.setInt16(offset, sample, true); // left channel
-    view.setInt16(offset + bytesPerSample, sample, true); // right channel
+
+    for (let ch = 0; ch < numChannels; ch++) {
+      const chOffset = offset + ch * bytesPerSample;
+
+      const clamped = Math.max(
+        globals.SAMPLE_MIN,
+        Math.min(globals.SAMPLE_MAX, sample),
+      );
+
+      if (bitsPerSample === 16) {
+        view.setInt16(chOffset, clamped, true);
+      } else if (bitsPerSample === 32) {
+        view.setInt32(chOffset, clamped, true);
+      } else {
+        throw new Error(`Shvi: Unsupported WAV bit depth: ${bitsPerSample}`);
+      }
+    }
   }
 
   await Deno.writeFile(output, new Uint8Array(buffer));
 }
 
 function mixSamples(a, b) {
-  const mixed = a + b;
-
-  if (mixed > 32767) return 32767;
-  if (mixed < -32768) return -32768;
-
-  return mixed;
+  return Math.max(
+    globals.SAMPLE_MIN,
+    Math.min(globals.SAMPLE_MAX, a + b),
+  );
 }
 
 function mixPCM(PCMs) {
   const numChannels = PCMs.length;
   const maxLength = Math.max(...PCMs.map((pcm) => pcm.length));
-  const mixed = new Int16Array(maxLength);
+  const bits = globals.WAV_BITS;
+
+  const output = bits === 16
+    ? new Int16Array(maxLength)
+    : bits === 32
+    ? new Int32Array(maxLength)
+    : (() => {
+      throw new Error(`Unsupported WAV_BITS: ${bits}`);
+    })();
+
+  const maxVal = globals.SAMPLE_MAX;
+  const minVal = globals.SAMPLE_MIN;
 
   for (let i = 0; i < maxLength; i++) {
     let mixedSample = 0;
 
     for (let j = 0; j < numChannels; j++) {
       const sample = i < PCMs[j].length ? PCMs[j][i] : 0;
-      mixedSample = mixSamples(mixedSample, sample / numChannels);
+      mixedSample += sample / numChannels;
     }
 
-    mixed[i] = mixedSample;
+    output[i] = Math.max(minVal, Math.min(maxVal, mixedSample));
   }
 
-  return mixed;
+  return output;
 }

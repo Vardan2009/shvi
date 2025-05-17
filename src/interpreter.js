@@ -132,6 +132,6 @@ const evaluateNode = (
 
 const evaluate = (syntaxTree, symbolTable, fullPCM) => {
   syntaxTree.forEach((statement) =>
-    evaluateNode(statement, fullPCM, symbolTable)
+    evaluateNode(statement, fullPCM, symbolTable, [50, 0, 50])
   );
 };

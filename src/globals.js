@@ -1,0 +1,7 @@
+export default {
+  SAMPLE_RATE: 44100,
+
+  WAV_BITS: 32,
+  SAMPLE_MAX: 2147483647,
+  SAMPLE_MIN: -2147483648,
+};
