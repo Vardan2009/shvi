@@ -115,7 +115,12 @@ const evaluateNode = (
     return command.fn(expression, fullPCM, symbolTable, envelope);
   } else {
     if (expression[0] in symbolTable) {
-      evaluateNode(symbolTable[expression[0]], fullPCM, symbolTable, envelope);
+      return evaluateNode(
+        symbolTable[expression[0]],
+        fullPCM,
+        symbolTable,
+        envelope,
+      );
     } else {
       console.error(
         `Shvi: Definition for ${Symbol.keyFor(expression[0])} not found`,
