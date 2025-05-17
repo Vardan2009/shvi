@@ -7,6 +7,17 @@ export {
   readWAVPCM,
 };
 
+const waveFunctions = {
+  [Symbol.for("sine")]: (x) => Math.sin(x), // Sine wave
+  [Symbol.for("square")]: (x) => Math.sign(Math.sin(x)), // Square wave
+  [Symbol.for("triangle")]: (x) =>
+    2 * Math.abs(2 * (x / Math.PI - Math.floor(x / Math.PI + 0.5))) - 1, // Triangle wave
+  [Symbol.for("sawtooth")]: (x) =>
+    2 * (x / Math.PI - Math.floor(x / Math.PI + 0.5)), // Sawtooth wave
+  [Symbol.for("pulse")]: (x, width = 0.5) =>
+    (Math.sin(x) >= Math.cos(width * Math.PI)) ? 1 : -1, // Pulse wave (with pulse width control)
+};
+
 import globals from "./globals.js";
 
 // sample[n]= A ⋅ sin(2 * π * f * (n / R))
@@ -47,12 +58,18 @@ function generatePCM(
   const amplitude = globals.SAMPLE_MAX;
   const sampleRate = globals.SAMPLE_RATE;
 
-  if (!envelope || !Array.isArray(envelope) || envelope.length !== 3) {
+  if (!envelope || !Array.isArray(envelope) || envelope.length !== 4) {
     console.error("Shvi: ADSR envelope invalid!");
     return;
   }
 
-  const [attack, decay, release] = envelope;
+  const [funcName, attack, decay, release] = envelope;
+
+  const audioFunc = waveFunctions[funcName];
+  if (!audioFunc) {
+    console.error("Shvi: Invalid audio gen function ", funcName);
+    return;
+  }
 
   const totalDurationSamples = Math.floor(sampleRate * (duration / 1000));
   const releaseSamples = Math.floor(sampleRate * (release / 1000));
@@ -89,7 +106,7 @@ function generatePCM(
 
     const t = (startingSampleCount + i) / sampleRate;
     const sample = amplitude * adsrFactor *
-      Math.sin(2 * Math.PI * frequency * t);
+      audioFunc(2 * Math.PI * frequency * t);
     adsSamples.push(sample);
   }
 
@@ -98,7 +115,7 @@ function generatePCM(
     const adsrFactor = 0.7 * (1 - releaseProgress);
     const t = (totalDurationSamples + startingSampleCount + i) / sampleRate;
     const sample = amplitude * adsrFactor *
-      Math.sin(2 * Math.PI * frequency * t);
+      audioFunc(2 * Math.PI * frequency * t);
     releasePartSamples.push(sample);
   }
 

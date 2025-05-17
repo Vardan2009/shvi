@@ -1,1 +1,5 @@
-(wav ext.wav)
+(parallel
+  (wav ext.wav)
+  (sequence (silence 100) (wav ext.wav))
+  ;; (sequence (tone C4 1000) (tone E4 1000) (tone G4 1000))
+)
