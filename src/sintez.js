@@ -1,4 +1,11 @@
-export { encodeWAV, generatePCM, mixPCM, pushSamplesToPCM, pushSilenceToPCM };
+export {
+  encodeWAV,
+  generatePCM,
+  mixPCM,
+  pushSamplesToPCM,
+  pushSilenceToPCM,
+  readWAVPCM,
+};
 
 import globals from "./globals.js";
 
@@ -153,6 +160,91 @@ async function encodeWAV(samples, output = "output.wav") {
   }
 
   await Deno.writeFile(output, new Uint8Array(buffer));
+}
+
+function readWAVPCM(filepath) {
+  const contents = Deno.readFileSync(filepath);
+  const buffer = contents.buffer.slice(
+    contents.byteOffset,
+    contents.byteOffset + contents.byteLength,
+  );
+  const view = new DataView(buffer);
+
+  if (String.fromCharCode(...new Uint8Array(buffer, 0, 4)) !== "RIFF") {
+    throw new Error("Shvi: Invalid WAV file: missing RIFF header");
+  }
+
+  if (String.fromCharCode(...new Uint8Array(buffer, 8, 4)) !== "WAVE") {
+    throw new Error("Shvi: Invalid WAV file: missing WAVE header");
+  }
+
+  let offset = 12;
+  let audioFormat,
+    numChannels,
+    _sampleRate,
+    _byteRate,
+    _blockAlign,
+    bitsPerSample;
+
+  while (offset < buffer.byteLength) {
+    const chunkId = String.fromCharCode(...new Uint8Array(buffer, offset, 4));
+    const chunkSize = view.getUint32(offset + 4, true);
+    if (chunkId === "fmt ") {
+      audioFormat = view.getUint16(offset + 8, true);
+      numChannels = view.getUint16(offset + 10, true);
+      _sampleRate = view.getUint32(offset + 12, true);
+      _byteRate = view.getUint32(offset + 16, true);
+      _blockAlign = view.getUint16(offset + 20, true);
+      bitsPerSample = view.getUint16(offset + 22, true);
+      break;
+    }
+    offset += 8 + chunkSize;
+  }
+
+  if (audioFormat !== 1) {
+    throw new Error("Shvi: Unsupported WAV format: only PCM is supported");
+  }
+
+  // 'data' chunk
+  offset = 12;
+  let dataOffset, dataSize;
+  while (offset < buffer.byteLength) {
+    const chunkId = String.fromCharCode(...new Uint8Array(buffer, offset, 4));
+    const chunkSize = view.getUint32(offset + 4, true);
+    if (chunkId === "data") {
+      dataOffset = offset + 8;
+      dataSize = chunkSize;
+      break;
+    }
+    offset += 8 + chunkSize;
+  }
+
+  const samples = [];
+  const bytesPerSample = bitsPerSample / 8;
+  const numSamples = dataSize / (bytesPerSample * numChannels);
+
+  for (let i = 0; i < numSamples; i++) {
+    let mixedSample = 0;
+
+    for (let ch = 0; ch < numChannels; ch++) {
+      const sampleOffset = dataOffset + (i * numChannels + ch) * bytesPerSample;
+      let sample;
+      if (bitsPerSample === 16) {
+        sample = view.getInt16(sampleOffset, true);
+      } else if (bitsPerSample === 32) {
+        sample = view.getInt32(sampleOffset, true);
+      } else {
+        throw new Error(`Shvi: Unsupported bits per sample: ${bitsPerSample}`);
+      }
+      mixedSample += sample;
+    }
+
+    mixedSample /= numChannels;
+
+    samples.push(mixedSample * Math.pow(2, bitsPerSample));
+  }
+
+  return samples;
 }
 
 function mixSamples(a, b) {

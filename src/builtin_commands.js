@@ -4,6 +4,7 @@ import {
   mixPCM,
   pushSamplesToPCM,
   pushSilenceToPCM,
+  readWAVPCM,
 } from "./sintez.js";
 import { evaluateNode } from "./interpreter.js";
 const builtinCommands = {
@@ -193,6 +194,16 @@ const builtinCommands = {
         : expression[1];
       const statement = expression[2];
       return evaluateNode(statement, fullPCM, symbolTable, newEnvelope);
+    },
+  },
+  [Symbol.for("wav")]: {
+    operandCount: 1,
+    fn: (expression, fullPCM, _symbolTable, _envelope) => {
+      const filepath = expression[1].description;
+      const samples = readWAVPCM(filepath);
+      pushSamplesToPCM(fullPCM, samples);
+      fullPCM.pcmPtr += samples.length;
+      return undefined;
     },
   },
 };
