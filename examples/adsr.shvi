@@ -7,5 +7,5 @@
 
     (tone E4 500)
 
-    (chord (C4 E4 G4) 500)
+    (chord (quote (C4 E4 G4)) 500)
 )))

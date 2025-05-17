@@ -69,11 +69,10 @@ const builtinCommands = {
       return undefined;
     },
   },
-  [Symbol.for("define")]: {
-    operandCount: 2,
-    fn: (expression, _fullPCM, symbolTable) => {
-      symbolTable[expression[1]] = expression[2];
-      return undefined;
+  [Symbol.for("quote")]: {
+    operandCount: 1,
+    fn: (expression, _fullPCM, _symbolTable, _envelope) => {
+      return expression[1];
     },
   },
   [Symbol.for("let")]: {
@@ -158,7 +157,8 @@ const builtinCommands = {
   [Symbol.for("chord")]: {
     operandCount: 2,
     fn: (expression, fullPCM, symbolTable, envelope) => {
-      const array = expression[1];
+      const array = evaluateNode(expression[1], fullPCM, symbolTable, envelope);
+      if (!array) return;
       const duration = evaluateNode(
         expression[2],
         fullPCM,

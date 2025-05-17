@@ -15,6 +15,7 @@ const tokenize = (input) => {
     };
 
     if (!currentChar) {
+      console.log(currentScope);
       return tokenBuffer.length > 0
         ? [...currentScope, typeify(tokenBuffer)]
         : currentScope;
@@ -77,10 +78,16 @@ const evaluateNode = (
   envelope = undefined,
 ) => {
   if (typeof expression === "symbol") {
-    if (expression in symbolTable) return symbolTable[expression];
-    else {
+    if (expression in symbolTable) {
+      return evaluateNode(
+        symbolTable[expression],
+        fullPCM,
+        symbolTable,
+        envelope,
+      );
+    } else {
       console.error(
-        `Shvi: Definition for ${Symbol.keyFor(expression[0])} not found`,
+        `Shvi: Definition for ${Symbol.keyFor(expression)} not found`,
       );
       return;
     }
@@ -114,24 +121,20 @@ const evaluateNode = (
 
     return command.fn(expression, fullPCM, symbolTable, envelope);
   } else {
-    if (expression[0] in symbolTable) {
-      return evaluateNode(
-        symbolTable[expression[0]],
-        fullPCM,
-        symbolTable,
-        envelope,
-      );
-    } else {
-      console.error(
-        `Shvi: Definition for ${Symbol.keyFor(expression[0])} not found`,
-      );
-      return;
-    }
+    console.error(
+      `Shvi: ${Symbol.keyFor(expression[0])} is not a command`,
+    );
+    return;
   }
 };
 
 const evaluate = (syntaxTree, symbolTable, fullPCM) => {
   syntaxTree.forEach((statement) =>
-    evaluateNode(statement, fullPCM, symbolTable, [50, 0, 50])
+    evaluateNode(statement, fullPCM, symbolTable, [
+      Symbol.for("sine"),
+      50,
+      0,
+      50,
+    ])
   );
 };
