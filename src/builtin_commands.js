@@ -196,7 +196,7 @@ const builtinCommands = {
   },
   [Symbol.for("lambda")]: {
     operandCount: 2,
-    fn: (expression, fullPCM, symbolTable, _envelope) => {
+    fn: (expression, _fullPCM, _symbolTable, _envelope) => {
       return {
         isLambda: true,
         arguments: expression[1],

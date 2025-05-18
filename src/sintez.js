@@ -84,7 +84,7 @@ function generatePCM(
     decaySamples = Math.floor(decaySamples * scale);
   }
 
-  const sustainSamples = Math.max(
+  const _sustainSamples = Math.max(
     0,
     totalDurationSamples - (attackSamples + decaySamples),
   );
