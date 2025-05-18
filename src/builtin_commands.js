@@ -214,4 +214,20 @@ const builtinCommands = {
       return undefined;
     },
   },
+  [Symbol.for("interleave")]: {
+    operandCount: 2,
+    fn: (expression, fullPCM, symbolTable, envelope) => {
+      const [_cmd, toInterleave, root] = expression;
+      if (!Array.isArray(root) || (root[0] != Symbol.for("sequence"))) {
+        console.error("Shvi: interleave takes a sequence as second operand");
+        return;
+      }
+      root.slice(1).forEach((command) => {
+        evaluateNode(command, fullPCM, symbolTable, envelope);
+        evaluateNode(toInterleave, fullPCM, symbolTable, envelope);
+      });
+
+      return undefined;
+    },
+  },
 };

@@ -1,0 +1,4 @@
+(interleave
+  (silence 1000)
+  (sequence (tone C4 1000) (tone A4 1000) (tone B4 1000))
+)
