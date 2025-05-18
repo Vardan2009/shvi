@@ -59,7 +59,7 @@ function generatePCM(
   const sampleRate = globals.SAMPLE_RATE;
 
   if (!envelope || !Array.isArray(envelope) || envelope.length !== 4) {
-    console.error("Shvi: ADSR envelope invalid!");
+    console.error("Shvi: ADSR envelope invalid!", envelope);
     return;
   }
 

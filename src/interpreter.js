@@ -78,12 +78,7 @@ const evaluateNode = (
 ) => {
   if (typeof expression === "symbol") {
     if (expression in symbolTable) {
-      return evaluateNode(
-        symbolTable[expression],
-        fullPCM,
-        symbolTable,
-        envelope,
-      );
+      return symbolTable[expression];
     } else {
       console.error(
         `Shvi: Definition for ${Symbol.keyFor(expression)} not found`,

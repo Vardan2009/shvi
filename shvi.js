@@ -24,8 +24,20 @@ const processFile = async (filePath) => {
 
 const runREPL = () => {
   while (true) {
-    const ln = prompt("Shvi %");
-    if (ln === null || ln.trim() === "") break;
+    let ln = "";
+    let line;
+
+    line = prompt("Shvi %");
+
+    if (line === null || line.trim() === "") break;
+
+    while (line.endsWith("\\")) {
+      ln += line.slice(0, -1) + "\n";
+      line = prompt("   ...");
+      if (line === null) break;
+    }
+    ln += line;
+
     const syntaxTree = tokenize(ln);
     const pcm = {
       pcmArray: [],
