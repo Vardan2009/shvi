@@ -145,6 +145,7 @@ const evaluateNode = (
     return evaluateNode(func.root, fullPCM, {
       ...symbolTable,
       ...symbolTableUpdate,
+      ...func.closure,
     }, envelope);
   }
 };
