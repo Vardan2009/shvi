@@ -1,7 +1,8 @@
 import { encodeWAV } from "./src/sintez.js";
 import { play } from "./src/util.js";
 import { evaluate, tokenize } from "./src/interpreter.js";
-import { globalSymbolTable } from "./symbolTable.js";
+
+import { globalSymbolTable } from "./global_symbol_table.js";
 
 const processFile = async (filePath) => {
   try {

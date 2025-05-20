@@ -1,5 +1,6 @@
 export { evaluate, evaluateNode, tokenize };
 import { builtinCommands } from "./builtin_commands.js";
+import { SymbolTable } from "./symbol_table.js";
 
 const atom = (name) => Symbol.for(name.trim());
 
@@ -77,14 +78,7 @@ const evaluateNode = (
   envelope = undefined,
 ) => {
   if (typeof expression === "symbol") {
-    if (expression in symbolTable) {
-      return symbolTable[expression];
-    } else {
-      console.error(
-        `Shvi: Definition for ${Symbol.keyFor(expression)} not found`,
-      );
-      return;
-    }
+    return symbolTable.getSymbol(expression);
   } else if (typeof expression === "number") return expression;
   else if (expression.isLambda) return expression;
 
@@ -138,15 +132,14 @@ const evaluateNode = (
 
     const keys = func.arguments;
     const values = givenArguments;
+
     const symbolTableUpdate = Object.fromEntries(
       keys.map((key, i) => [key, values[i]]),
     );
 
-    return evaluateNode(func.root, fullPCM, {
-      ...symbolTable,
-      ...symbolTableUpdate,
-      ...func.closure,
-    }, envelope);
+    const newSymbolTable = new SymbolTable(symbolTableUpdate, func.closure);
+
+    return evaluateNode(func.root, fullPCM, newSymbolTable, envelope);
   }
 };
 

@@ -7,6 +7,7 @@ import {
   readWAVPCM,
 } from "./sintez.js";
 import { evaluateNode } from "./interpreter.js";
+import { SymbolTable } from "./symbol_table.js";
 const builtinCommands = {
   [Symbol.for("+")]: {
     minOperandCount: 1,
@@ -79,7 +80,7 @@ const builtinCommands = {
     operandCount: 2,
     fn: (expression, fullPCM, symbolTable, envelope) => {
       const val = evaluateNode(expression[2], fullPCM, symbolTable, envelope);
-      symbolTable[expression[1]] = val;
+      symbolTable.setSymbol(expression[1], val);
       return val;
     },
   },
@@ -201,7 +202,7 @@ const builtinCommands = {
         isLambda: true,
         arguments: expression[1],
         root: expression[2],
-        closure: { ...symbolTable },
+        closure: new SymbolTable({}, symbolTable),
       };
     },
   },

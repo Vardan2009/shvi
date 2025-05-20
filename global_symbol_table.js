@@ -1,6 +1,7 @@
 export { globalSymbolTable };
+import { SymbolTable } from "./src/symbol_table.js";
 
-const globalSymbolTable = {
+const globalSymbolTable = new SymbolTable({
   [Symbol.for("C0")]: 16.35,
   [Symbol.for("C#0")]: 17.32,
   [Symbol.for("Db0")]: 17.32,
@@ -158,4 +159,4 @@ const globalSymbolTable = {
   // Instruments
   // attack, decay,release (in ms)
   [Symbol.for("piano")]: [Symbol.for("sine"), 10, 50, 200],
-};
+}, undefined);

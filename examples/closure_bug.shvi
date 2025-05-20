@@ -1,4 +1,0 @@
-(let x 10)
-(let fn (lambda () x))
-(let x 20)
-(print (fn)) ; 10
