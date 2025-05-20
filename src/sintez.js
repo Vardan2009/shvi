@@ -49,6 +49,25 @@ function pushSilenceToPCM(pcm, sampleCount) {
   }
 }
 
+function resamplePCM(samples, originalRate, targetRate) {
+  if (originalRate === targetRate) return samples;
+
+  const ratio = originalRate / targetRate;
+  const newLength = Math.floor(samples.length / ratio);
+  const newSamples = new Float32Array(newLength);
+
+  for (let i = 0; i < newLength; i++) {
+    const originalIndex = i * ratio;
+    const i0 = Math.floor(originalIndex);
+    const i1 = Math.min(i0 + 1, samples.length - 1);
+    const t = originalIndex - i0;
+
+    newSamples[i] = samples[i0] * (1 - t) + samples[i1] * t;
+  }
+
+  return Array.from(newSamples);
+}
+
 function generatePCM(
   frequency,
   duration,
@@ -198,7 +217,7 @@ function readWAVPCM(filepath) {
   let offset = 12;
   let audioFormat,
     numChannels,
-    _sampleRate,
+    wavSampleRate,
     _byteRate,
     _blockAlign,
     bitsPerSample;
@@ -209,7 +228,7 @@ function readWAVPCM(filepath) {
     if (chunkId === "fmt ") {
       audioFormat = view.getUint16(offset + 8, true);
       numChannels = view.getUint16(offset + 10, true);
-      _sampleRate = view.getUint32(offset + 12, true);
+      wavSampleRate = view.getUint32(offset + 12, true);
       _byteRate = view.getUint32(offset + 16, true);
       _blockAlign = view.getUint16(offset + 20, true);
       bitsPerSample = view.getUint16(offset + 22, true);
@@ -261,7 +280,7 @@ function readWAVPCM(filepath) {
     samples.push(mixedSample * Math.pow(2, bitsPerSample));
   }
 
-  return samples;
+  return resamplePCM(samples, wavSampleRate, globals.SAMPLE_RATE);
 }
 
 function mixSamples(a, b) {
