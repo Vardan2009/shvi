@@ -445,4 +445,12 @@ const builtinCommands = {
       console.error("Shvi: cond requires an else case");
     },
   },
+  [Symbol.for("list")]: {
+    minOperandCount: 0,
+    fn: (expression, fullPCM, symbolTable, envelope) => {
+      return expression.slice(1).map((expr) =>
+        evaluateNode(expr, fullPCM, symbolTable, envelope)
+      );
+    },
+  },
 };
