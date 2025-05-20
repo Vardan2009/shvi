@@ -8,6 +8,20 @@ import {
 } from "./sintez.js";
 import { evaluateNode } from "./interpreter.js";
 import { SymbolTable } from "./symbol_table.js";
+
+const lispCompare = (a, b) => {
+  const isFalsy = (val) => {
+    return val === undefined ||
+      val === false ||
+      val === Symbol.for("nil") ||
+      (Array.isArray(val) && val.length === 0);
+  };
+
+  const normalize = (val) => isFalsy(val) ? false : val;
+
+  return normalize(a) === normalize(b);
+};
+
 const builtinCommands = {
   [Symbol.for("+")]: {
     minOperandCount: 1,
@@ -65,7 +79,7 @@ const builtinCommands = {
           symbolTable,
           envelope,
         );
-        if (current !== first) return false;
+        if (!lispCompare(current, first)) return false;
       }
       return true;
     },
@@ -77,7 +91,7 @@ const builtinCommands = {
       for (let i = 1; i < expression.length; ++i) {
         const val = evaluateNode(expression[i], fullPCM, symbolTable, envelope);
         for (let j = 0; j < values.length; ++j) {
-          if (val === values[j]) return false;
+          if (lispCompare(val, values[j])) return false;
         }
         values.push(val);
       }
@@ -397,5 +411,8 @@ const builtinCommands = {
       const list = evaluateNode(listNode, fullPCM, symbolTable, envelope);
       return list.slice(1);
     },
+  },
+  [Symbol.for("cond")]: {
+    minOperandCount: 2,
   },
 };

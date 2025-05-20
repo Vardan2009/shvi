@@ -79,12 +79,10 @@ const evaluateNode = (
 ) => {
   if (typeof expression === "symbol") {
     switch (expression) {
-      case Symbol.for("true"):
+      case Symbol.for("t"):
         return true;
-      case Symbol.for("false"):
-        return false;
       case Symbol.for("nil"):
-        return [];
+        return Symbol.for("nil");
       default:
         return symbolTable.getSymbol(expression);
     }
