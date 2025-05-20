@@ -262,4 +262,20 @@ const builtinCommands = {
       return Array.isArray(rest) ? [first, ...rest] : [first, rest];
     },
   },
+  [Symbol.for("car")]: {
+    operandCount: 1,
+    fn: (expression, fullPCM, symbolTable, envelope) => {
+      const [_cmd, listNode] = expression;
+      const list = evaluateNode(listNode, fullPCM, symbolTable, envelope);
+      return list[0];
+    },
+  },
+  [Symbol.for("cdr")]: {
+    operandCount: 1,
+    fn: (expression, fullPCM, symbolTable, envelope) => {
+      const [_cmd, listNode] = expression;
+      const list = evaluateNode(listNode, fullPCM, symbolTable, envelope);
+      return list.slice(1);
+    },
+  },
 };
