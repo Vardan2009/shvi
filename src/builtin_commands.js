@@ -253,4 +253,13 @@ const builtinCommands = {
       return undefined;
     },
   },
+  [Symbol.for("cons")]: {
+    operandCount: 2,
+    fn: (expression, fullPCM, symbolTable, envelope) => {
+      const [_cmd, firstNode, restNode] = expression;
+      const first = evaluateNode(firstNode, fullPCM, symbolTable, envelope);
+      const rest = evaluateNode(restNode, fullPCM, symbolTable, envelope);
+      return Array.isArray(rest) ? [first, ...rest] : [first, rest];
+    },
+  },
 };
