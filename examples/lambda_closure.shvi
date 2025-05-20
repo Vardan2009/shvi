@@ -1,6 +1,8 @@
 ;; ((λx.(λy.x^2+y^2))(5))(2) = 29 in shvi
 
 ;; assign lambda fn for simplification
-(let fn (lambda (x) (lambda (y) (+ (* x x) (* y y)))))
-
-(print ((fn 5) 2)) ;; should print 29
+(let
+  ((fn (lambda (x) (lambda (y) (+ (* x x) (* y y))))))
+  
+  (print ((fn 5) 2)) ;; should print 29
+)

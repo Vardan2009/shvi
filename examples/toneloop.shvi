@@ -1,11 +1,13 @@
-(let freq 100) ;; set initial frequency to 100
+(let ((freq 100)) ;; set initial frequency to 100
 
-;; repeat the sequence 100 times
-(repeat 100 (sequence  
-  ;; play freq tone for 100 ms
-  (tone freq 100)       
-  ;; add 10 to freq
-  (let freq (+ freq 10))
-))
+  ;; repeat the sequence 100 times
+  (repeat 100 (sequence  
+    ;; play freq tone for 100 ms
+    (tone freq 100)
+    (print freq)
 
-;; this will generate linear sound ranging from 100-1100Hz in 10 seconds
+    ;; add 10 to freq
+    (setf freq (+ freq 10))
+  ))
+
+)

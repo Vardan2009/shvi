@@ -79,6 +79,26 @@ const builtinCommands = {
   [Symbol.for("let")]: {
     operandCount: 2,
     fn: (expression, fullPCM, symbolTable, envelope) => {
+      const [_, bindings, ...body] = expression;
+
+      const localScope = new SymbolTable({}, symbolTable);
+
+      for (const [varName, valueExpr] of bindings) {
+        const val = evaluateNode(valueExpr, fullPCM, symbolTable, envelope);
+        localScope.setSymbol(varName, val);
+      }
+
+      let result;
+      for (const expr of body) {
+        result = evaluateNode(expr, fullPCM, localScope, envelope);
+      }
+
+      return result;
+    },
+  },
+  [Symbol.for("setf")]: {
+    operandCount: 2,
+    fn: (expression, fullPCM, symbolTable, envelope) => {
       const val = evaluateNode(expression[2], fullPCM, symbolTable, envelope);
       symbolTable.setSymbol(expression[1], val);
       return val;
@@ -125,9 +145,8 @@ const builtinCommands = {
   [Symbol.for("sequence")]: {
     minOperandCount: 0,
     fn: (expression, fullPCM, symbolTable, envelope) => {
-      const childSymbolTable = new SymbolTable({}, symbolTable);
       for (let i = 1; i < expression.length; ++i) {
-        evaluateNode(expression[i], fullPCM, childSymbolTable, envelope);
+        evaluateNode(expression[i], fullPCM, symbolTable, envelope);
       }
       return undefined;
     },
@@ -135,15 +154,13 @@ const builtinCommands = {
   [Symbol.for("parallel")]: {
     minOperandCount: 0,
     fn: (expression, fullPCM, symbolTable, envelope) => {
-      const childSymbolTable = new SymbolTable({}, symbolTable);
-
       const PCMs = [];
       for (let i = 1; i < expression.length; ++i) {
         const commandPCM = {
           pcmArray: [],
           pcmPtr: 0,
         };
-        evaluateNode(expression[i], commandPCM, childSymbolTable, envelope);
+        evaluateNode(expression[i], commandPCM, symbolTable, envelope);
         PCMs.push(commandPCM);
       }
 
@@ -223,15 +240,14 @@ const builtinCommands = {
     operandCount: 2,
     fn: (expression, fullPCM, symbolTable, envelope) => {
       const [_cmd, toInterleave, root] = expression;
-      const childSymbolTable = new SymbolTable({}, symbolTable);
 
       if (!Array.isArray(root) || (root[0] != Symbol.for("sequence"))) {
         console.error("Shvi: interleave takes a sequence as second operand");
         return;
       }
       root.slice(1).forEach((command) => {
-        evaluateNode(command, fullPCM, childSymbolTable, envelope);
-        evaluateNode(toInterleave, fullPCM, childSymbolTable, envelope);
+        evaluateNode(command, fullPCM, symbolTable, envelope);
+        evaluateNode(toInterleave, fullPCM, symbolTable, envelope);
       });
 
       return undefined;
