@@ -33,9 +33,34 @@ class SymbolTable {
     }
   }
 
+  declareSymbol(symbol, value) {
+    if (typeof symbol !== "symbol") {
+      console.error(`Shvi: ${symbol} is not a symbol`);
+      return undefined;
+    }
+
+    if (symbol in this.localSymbolTable) {
+      console.error(
+        `Shvi: ${Symbol.keyFor(symbol)} is already present in this scope`,
+      );
+      return undefined;
+    }
+
+    this.localSymbolTable[symbol] = value;
+  }
+
   setSymbol(symbol, value) {
-    if (this.parent && this.parent.hasSymbol(symbol)) {
-      this.parent.setSymbol(symbol, value);
-    } else this.localSymbolTable[symbol] = value;
+    if (typeof symbol !== "symbol") {
+      console.error(`Shvi: ${symbol} is not a symbol`);
+      return undefined;
+    }
+
+    if (symbol in this.localSymbolTable) this.localSymbolTable[symbol] = value;
+    else if (this.parent) this.parent.setSymbol(symbol, value);
+    else {
+      console.error(
+        `Shvi: ${Symbol.keyFor(symbol)} is not defined in this scope`,
+      );
+    }
   }
 }

@@ -1,0 +1,17 @@
+(let ((x 30) (y 60))
+  (let ((x 50))
+    (print x)
+    (setf x 100)
+    (setf y 120)
+    (print x)  
+  )
+
+  (print x)
+  (print y)
+)
+
+; expected output
+; 50
+; 100
+; 30
+; 120

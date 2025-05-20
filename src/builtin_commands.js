@@ -77,7 +77,7 @@ const builtinCommands = {
     },
   },
   [Symbol.for("let")]: {
-    operandCount: 2,
+    minOperandCount: 2,
     fn: (expression, fullPCM, symbolTable, envelope) => {
       const [_, bindings, ...body] = expression;
 
@@ -85,7 +85,7 @@ const builtinCommands = {
 
       for (const [varName, valueExpr] of bindings) {
         const val = evaluateNode(valueExpr, fullPCM, symbolTable, envelope);
-        localScope.setSymbol(varName, val);
+        localScope.declareSymbol(varName, val);
       }
 
       let result;
