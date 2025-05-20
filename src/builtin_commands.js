@@ -201,7 +201,7 @@ const builtinCommands = {
         isLambda: true,
         arguments: expression[1],
         root: expression[2],
-        closure: symbolTable,
+        closure: { ...symbolTable },
       };
     },
   },
