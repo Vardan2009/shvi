@@ -125,8 +125,9 @@ const builtinCommands = {
   [Symbol.for("sequence")]: {
     minOperandCount: 0,
     fn: (expression, fullPCM, symbolTable, envelope) => {
+      const childSymbolTable = new SymbolTable({}, symbolTable);
       for (let i = 1; i < expression.length; ++i) {
-        evaluateNode(expression[i], fullPCM, symbolTable, envelope);
+        evaluateNode(expression[i], fullPCM, childSymbolTable, envelope);
       }
       return undefined;
     },
@@ -134,13 +135,15 @@ const builtinCommands = {
   [Symbol.for("parallel")]: {
     minOperandCount: 0,
     fn: (expression, fullPCM, symbolTable, envelope) => {
+      const childSymbolTable = new SymbolTable({}, symbolTable);
+
       const PCMs = [];
       for (let i = 1; i < expression.length; ++i) {
         const commandPCM = {
           pcmArray: [],
           pcmPtr: 0,
         };
-        evaluateNode(expression[i], commandPCM, symbolTable, envelope);
+        evaluateNode(expression[i], commandPCM, childSymbolTable, envelope);
         PCMs.push(commandPCM);
       }
 
@@ -220,13 +223,15 @@ const builtinCommands = {
     operandCount: 2,
     fn: (expression, fullPCM, symbolTable, envelope) => {
       const [_cmd, toInterleave, root] = expression;
+      const childSymbolTable = new SymbolTable({}, symbolTable);
+
       if (!Array.isArray(root) || (root[0] != Symbol.for("sequence"))) {
         console.error("Shvi: interleave takes a sequence as second operand");
         return;
       }
       root.slice(1).forEach((command) => {
-        evaluateNode(command, fullPCM, symbolTable, envelope);
-        evaluateNode(toInterleave, fullPCM, symbolTable, envelope);
+        evaluateNode(command, fullPCM, childSymbolTable, envelope);
+        evaluateNode(toInterleave, fullPCM, childSymbolTable, envelope);
       });
 
       return undefined;
