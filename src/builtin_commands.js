@@ -54,6 +54,126 @@ const builtinCommands = {
       return quotient;
     },
   },
+  [Symbol.for("=")]: {
+    minOperandCount: 2,
+    fn: (expression, fullPCM, symbolTable, envelope) => {
+      const first = evaluateNode(expression[1], fullPCM, symbolTable, envelope);
+      for (let i = 2; i < expression.length; ++i) {
+        const current = evaluateNode(
+          expression[i],
+          fullPCM,
+          symbolTable,
+          envelope,
+        );
+        if (current !== first) return false;
+      }
+      return true;
+    },
+  },
+  [Symbol.for("/=")]: {
+    minOperandCount: 2,
+    fn: (expression, fullPCM, symbolTable, envelope) => {
+      const values = [];
+      for (let i = 1; i < expression.length; ++i) {
+        const val = evaluateNode(expression[i], fullPCM, symbolTable, envelope);
+        for (let j = 0; j < values.length; ++j) {
+          if (val === values[j]) return false;
+        }
+        values.push(val);
+      }
+      return true;
+    },
+  },
+  [Symbol.for("<")]: {
+    minOperandCount: 2,
+    fn: (expression, fullPCM, symbolTable, envelope) => {
+      for (let i = 1; i < expression.length - 1; ++i) {
+        const a = evaluateNode(expression[i], fullPCM, symbolTable, envelope);
+        const b = evaluateNode(
+          expression[i + 1],
+          fullPCM,
+          symbolTable,
+          envelope,
+        );
+        if (!(a < b)) return false;
+      }
+      return true;
+    },
+  },
+  [Symbol.for(">")]: {
+    minOperandCount: 2,
+    fn: (expression, fullPCM, symbolTable, envelope) => {
+      for (let i = 1; i < expression.length - 1; ++i) {
+        const a = evaluateNode(expression[i], fullPCM, symbolTable, envelope);
+        const b = evaluateNode(
+          expression[i + 1],
+          fullPCM,
+          symbolTable,
+          envelope,
+        );
+        if (!(a > b)) return false;
+      }
+      return true;
+    },
+  },
+  [Symbol.for("<=")]: {
+    minOperandCount: 2,
+    fn: (expression, fullPCM, symbolTable, envelope) => {
+      for (let i = 1; i < expression.length - 1; ++i) {
+        const a = evaluateNode(expression[i], fullPCM, symbolTable, envelope);
+        const b = evaluateNode(
+          expression[i + 1],
+          fullPCM,
+          symbolTable,
+          envelope,
+        );
+        if (!(a <= b)) return false;
+      }
+      return true;
+    },
+  },
+  [Symbol.for(">=")]: {
+    minOperandCount: 2,
+    fn: (expression, fullPCM, symbolTable, envelope) => {
+      for (let i = 1; i < expression.length - 1; ++i) {
+        const a = evaluateNode(expression[i], fullPCM, symbolTable, envelope);
+        const b = evaluateNode(
+          expression[i + 1],
+          fullPCM,
+          symbolTable,
+          envelope,
+        );
+        if (!(a >= b)) return false;
+      }
+      return true;
+    },
+  },
+  [Symbol.for("and")]: {
+    minOperandCount: 1,
+    fn: (expression, fullPCM, symbolTable, envelope) => {
+      let result;
+      for (let i = 1; i < expression.length; ++i) {
+        result = evaluateNode(expression[i], fullPCM, symbolTable, envelope);
+        if (!result) return result;
+      }
+      return result;
+    },
+  },
+  [Symbol.for("or")]: {
+    minOperandCount: 1,
+    fn: (expression, fullPCM, symbolTable, envelope) => {
+      for (let i = 1; i < expression.length; ++i) {
+        const result = evaluateNode(
+          expression[i],
+          fullPCM,
+          symbolTable,
+          envelope,
+        );
+        if (result) return result;
+      }
+      return false;
+    },
+  },
   [Symbol.for("tone")]: {
     operandCount: 2,
     fn: (expression, fullPCM, symbolTable, envelope) => {
