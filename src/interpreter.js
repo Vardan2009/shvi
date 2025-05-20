@@ -78,7 +78,16 @@ const evaluateNode = (
   envelope = undefined,
 ) => {
   if (typeof expression === "symbol") {
-    return symbolTable.getSymbol(expression);
+    switch (expression) {
+      case Symbol.for("true"):
+        return true;
+      case Symbol.for("false"):
+        return false;
+      case Symbol.for("nil"):
+        return [];
+      default:
+        return symbolTable.getSymbol(expression);
+    }
   } else if (typeof expression === "number") return expression;
   else if (expression.isLambda) return expression;
 
