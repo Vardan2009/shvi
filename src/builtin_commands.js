@@ -421,5 +421,28 @@ const builtinCommands = {
   },
   [Symbol.for("cond")]: {
     minOperandCount: 2,
+    fn: (expression, fullPCM, symbolTable, envelope) => {
+      if ((expression.length - 1) % 2 != 0) {
+        console.log(`Shvi: incorrect cond syntax`);
+        return;
+      }
+
+      for (let i = 1; i < expression.length; i += 2) {
+        if (
+          (typeof expression[i] === "symbol" &&
+            Symbol.keyFor(expression[i]) === "else") ||
+          !isFalsy(evaluateNode(expression[i], fullPCM, symbolTable, envelope))
+        ) {
+          return evaluateNode(
+            expression[i + 1],
+            fullPCM,
+            symbolTable,
+            envelope,
+          );
+        }
+      }
+
+      console.error("Shvi: cond requires an else case");
+    },
   },
 };
