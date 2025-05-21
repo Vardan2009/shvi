@@ -1,6 +1,26 @@
-export { evaluate, evaluateNode, tokenize };
+export { evaluate, evaluateNode, isFalsy, lispCompare, lispPrint, tokenize };
 import { builtinCommands } from "./builtin_commands.js";
 import { SymbolTable } from "./symbol_table.js";
+
+const isFalsy = (val) => {
+  return val === undefined ||
+    val === false ||
+    val === Symbol.for("nil") ||
+    (Array.isArray(val) && val.length === 0);
+};
+
+const lispCompare = (a, b) => {
+  const normalize = (val) => isFalsy(val) ? false : val;
+  return normalize(a) === normalize(b);
+};
+
+const lispPrint = (...vals) => {
+  console.log(...vals.map((val) => {
+    if (val === true) return "T";
+    if (isFalsy(val)) return "nil";
+    return val;
+  }));
+};
 
 const atom = (name) => Symbol.for(name.trim());
 
@@ -154,12 +174,15 @@ const evaluateNode = (
 };
 
 const evaluate = (syntaxTree, symbolTable, fullPCM) => {
+  let result;
   syntaxTree.forEach((statement) =>
-    evaluateNode(statement, fullPCM, symbolTable, [
+    result = evaluateNode(statement, fullPCM, symbolTable, [
       Symbol.for("sine"),
       50,
       0,
       50,
     ])
   );
+
+  return result;
 };

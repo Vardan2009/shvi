@@ -9,25 +9,7 @@ import {
 import { evaluateNode } from "./interpreter.js";
 import { SymbolTable } from "./symbol_table.js";
 
-const isFalsy = (val) => {
-  return val === undefined ||
-    val === false ||
-    val === Symbol.for("nil") ||
-    (Array.isArray(val) && val.length === 0);
-};
-
-const lispCompare = (a, b) => {
-  const normalize = (val) => isFalsy(val) ? false : val;
-  return normalize(a) === normalize(b);
-};
-
-const lispPrint = (...vals) => {
-  console.log(...vals.map((val) => {
-    if (val === true) return "T";
-    if (isFalsy(val)) return "nil";
-    return val;
-  }));
-};
+import { isFalsy, lispCompare, lispPrint } from "./interpreter.js";
 
 const builtinCommands = {
   [Symbol.for("+")]: {

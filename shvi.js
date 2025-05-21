@@ -1,6 +1,6 @@
 import { encodeWAV } from "./src/sintez.js";
 import { play } from "./src/util.js";
-import { evaluate, tokenize } from "./src/interpreter.js";
+import { evaluate, lispPrint, tokenize } from "./src/interpreter.js";
 
 import { globalSymbolTable } from "./global_symbol_table.js";
 
@@ -44,7 +44,9 @@ const runREPL = () => {
       pcmArray: [],
       pcmPtr: 0,
     };
-    evaluate(syntaxTree, globalSymbolTable, pcm);
+
+    lispPrint(evaluate(syntaxTree, globalSymbolTable, pcm));
+
     if (pcm.pcmArray.length > 0) {
       encodeWAV(pcm.pcmArray);
       play("output.wav");
