@@ -1,4 +1,32 @@
-(interleave
-  (silence 1000)
-  (sequence (tone C4 1000) (tone A4 1000) (tone B4 1000))
+(let 
+  (
+  (
+    concat
+    (lambda (a b) (sequence 
+      (cond
+        (= a nil) b
+        else (cons (car a) (concat (cdr a) b))
+      )
+    ))
+  )
+  (interleave
+    (lambda (to-interleave remaining result) 
+      (cond
+        (= remaining nil) result
+        else (interleave
+          to-interleave
+          (cdr remaining)
+          (cond 
+            (= (cdr remaining) nil) (concat result (list (car remaining)))
+            else (concat result (list (car remaining) to-interleave))
+          )
+        )
+      )
+    )
+  )
+  )
+
+  (print (
+    interleave 5 (list 1 2 3) (list)) ; 1 5 2 5 3
+  )
 )

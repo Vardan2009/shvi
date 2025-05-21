@@ -225,7 +225,7 @@ const builtinCommands = {
       const localScope = new SymbolTable({}, symbolTable);
 
       for (const [varName, valueExpr] of bindings) {
-        const val = evaluateNode(valueExpr, fullPCM, symbolTable, envelope);
+        const val = evaluateNode(valueExpr, fullPCM, localScope, envelope);
         localScope.declareSymbol(varName, val);
       }
 
@@ -286,10 +286,11 @@ const builtinCommands = {
   [Symbol.for("sequence")]: {
     minOperandCount: 0,
     fn: (expression, fullPCM, symbolTable, envelope) => {
+      let result;
       for (let i = 1; i < expression.length; ++i) {
-        evaluateNode(expression[i], fullPCM, symbolTable, envelope);
+        result = evaluateNode(expression[i], fullPCM, symbolTable, envelope);
       }
-      return undefined;
+      return result;
     },
   },
   [Symbol.for("parallel")]: {
@@ -357,14 +358,15 @@ const builtinCommands = {
     },
   },
   [Symbol.for("lambda")]: {
-    operandCount: 2,
+    minOperandCount: 2,
     fn: (expression, _fullPCM, symbolTable, _envelope) => {
-      return {
+      const lambda = {
         isLambda: true,
         arguments: expression[1],
         root: expression[2],
         closure: new SymbolTable({}, symbolTable),
       };
+      return lambda;
     },
   },
   [Symbol.for("wav")]: {
@@ -374,23 +376,6 @@ const builtinCommands = {
       const samples = readWAVPCM(filepath);
       pushSamplesToPCM(fullPCM, samples);
       fullPCM.pcmPtr += samples.length;
-      return undefined;
-    },
-  },
-  [Symbol.for("interleave")]: {
-    operandCount: 2,
-    fn: (expression, fullPCM, symbolTable, envelope) => {
-      const [_cmd, toInterleave, root] = expression;
-
-      if (!Array.isArray(root) || (root[0] != Symbol.for("sequence"))) {
-        console.error("Shvi: interleave takes a sequence as second operand");
-        return;
-      }
-      root.slice(1).forEach((command) => {
-        evaluateNode(command, fullPCM, symbolTable, envelope);
-        evaluateNode(toInterleave, fullPCM, symbolTable, envelope);
-      });
-
       return undefined;
     },
   },

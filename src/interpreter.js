@@ -141,7 +141,10 @@ const evaluateNode = (
     const values = givenArguments;
 
     const symbolTableUpdate = Object.fromEntries(
-      keys.map((key, i) => [key, values[i]]),
+      keys.map((
+        key,
+        i,
+      ) => [key, evaluateNode(values[i], fullPCM, symbolTable, envelope)]),
     );
 
     const newSymbolTable = new SymbolTable(symbolTableUpdate, func.closure);
