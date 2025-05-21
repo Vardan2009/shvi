@@ -453,4 +453,14 @@ const builtinCommands = {
       );
     },
   },
+  [Symbol.for("eval")]: {
+    operandCount: 1,
+    fn: (expression, fullPCM, symbolTable, envelope) =>
+      evaluateNode(
+        evaluateNode(expression[1], fullPCM, symbolTable, envelope),
+        fullPCM,
+        symbolTable,
+        envelope,
+      ),
+  },
 };
