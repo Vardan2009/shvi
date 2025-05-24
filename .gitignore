@@ -9,3 +9,5 @@ deno.lock
 *.wav
 
 .vscode/**/*
+
+shvi
