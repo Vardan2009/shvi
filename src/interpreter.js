@@ -140,6 +140,7 @@ const evaluateNode = (
   envelope = undefined,
   modifiers = {},
 ) => {
+  if (expression == undefined) return;
   if (typeof expression === "symbol") {
     switch (expression) {
       case Symbol.for("t"):
