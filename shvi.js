@@ -28,7 +28,10 @@ const processFile = async (filePath) => {
 };
 
 const runREPL = () => {
-  console.log(`🪈 Shvi ver. ${globals.SHVI_VERSION}\n`);
+  console.log(`🪈 Shvi ver. ${globals.SHVI_VERSION}`);
+  console.log(
+    "Type \x1b[32mexit\x1b[0m or press \x1b[32mCtrl+C\x1b[0m to exit\n",
+  );
 
   while (true) {
     let ln = "";
@@ -36,7 +39,8 @@ const runREPL = () => {
 
     line = prompt("\x1b[33mShvi %\x1b[0m");
 
-    if (line === null || line.trim() === "") break;
+    if (line === null || line.trim() === "") continue;
+    if (line.trim() === "exit") break;
 
     while (line.endsWith("\\")) {
       ln += line.slice(0, -1) + "\n";
