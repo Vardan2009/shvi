@@ -2,7 +2,11 @@ import { encodeWAV } from "./src/sintez.js";
 import { play } from "./src/util.js";
 import { evaluate, lispPrint, tokenize } from "./src/interpreter.js";
 
+import globals from "./src/globals.js";
 import { globalSymbolTable } from "./global_symbol_table.js";
+
+console.error = (...datas) =>
+  console.log(...datas.map((data) => `\x1b[31m${data}\x1b[0m`));
 
 const processFile = async (filePath) => {
   try {
@@ -24,11 +28,13 @@ const processFile = async (filePath) => {
 };
 
 const runREPL = () => {
+  console.log(`🪈 Shvi ver. ${globals.SHVI_VERSION}\n`);
+
   while (true) {
     let ln = "";
     let line;
 
-    line = prompt("Shvi %");
+    line = prompt("\x1b[33mShvi %\x1b[0m");
 
     if (line === null || line.trim() === "") break;
 

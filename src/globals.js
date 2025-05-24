@@ -1,4 +1,6 @@
 export default {
+  SHVI_VERSION: "0.7",
+
   SAMPLE_RATE: 44100,
 
   WAV_BITS: 32,
