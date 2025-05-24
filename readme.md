@@ -1,4 +1,5 @@
-![Shvi Logo](artwork/shvi_logo.png)
+<img alt="Shvi Logo" src="artwork/shvi_logo.png" width="150px">
+
 
 ## Shvi 🪈. Lisp-Inspired Sound Synthesis Language
 
