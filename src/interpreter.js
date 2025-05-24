@@ -17,7 +17,11 @@ const lispCompare = (a, b) => {
 const toLispPrintable = (val) => {
   if (val === true) return "T";
   if (isFalsy(val)) return "NIL";
-  if (val.isLambda) return `(lambda ${toLispPrintable(val.arguments)} ...)`;
+  if (val.isLambda) {
+    return `(lambda ${toLispPrintable(val.arguments)} ${
+      toLispPrintable(val.root)
+    })`;
+  }
   if (Array.isArray(val)) {
     let str = "(";
     val.forEach((v, i) =>
