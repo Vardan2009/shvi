@@ -71,8 +71,9 @@ function resamplePCM(samples, originalRate, targetRate) {
 function generatePCM(
   frequency,
   duration,
-  envelope = [0, 0, 0],
+  envelope = [0, 0, 0, 0],
   startingSampleCount = 0,
+  modifiers = {},
 ) {
   const amplitude = globals.SAMPLE_MAX;
   const sampleRate = globals.SAMPLE_RATE;
@@ -83,6 +84,11 @@ function generatePCM(
   }
 
   const [funcName, attack, decay, release] = envelope;
+
+  let vibratoAmplitude = 0, vibratoFrequency = 0;
+  if ("vibrato" in modifiers) {
+    [vibratoAmplitude, vibratoFrequency] = modifiers.vibrato;
+  }
 
   const audioFunc = waveFunctions[funcName];
   if (!audioFunc) {
@@ -112,7 +118,10 @@ function generatePCM(
   const releasePartSamples = [];
 
   for (let i = 0; i < totalDurationSamples; i++) {
+    const t = (startingSampleCount + i) / sampleRate;
+
     let adsrFactor = 1;
+    const vibrato = vibratoAmplitude * Math.sin(t * vibratoFrequency);
 
     if (i < attackSamples) {
       adsrFactor = (decaySamples == 0 ? 0.7 : 1) * (i / attackSamples);
@@ -123,9 +132,9 @@ function generatePCM(
       adsrFactor = 0.7; // sustain
     }
 
-    const t = (startingSampleCount + i) / sampleRate;
     const sample = amplitude * adsrFactor *
-      audioFunc(2 * Math.PI * frequency * t);
+      audioFunc(2 * Math.PI * frequency * t + vibrato);
+
     adsSamples.push(sample);
   }
 

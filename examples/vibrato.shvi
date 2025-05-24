@@ -1,0 +1,3 @@
+(vibrato 3 50 (sequence
+  (chord '(C4 E4 G4) 1000)
+))

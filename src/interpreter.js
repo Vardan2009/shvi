@@ -26,6 +26,7 @@ const toLispPrintable = (val) => {
     str += ")";
     return str;
   }
+  if (typeof val === "symbol") return Symbol.keyFor(val);
   return val;
 };
 
@@ -137,6 +138,7 @@ const evaluateNode = (
   fullPCM,
   symbolTable,
   envelope = undefined,
+  modifiers = {},
 ) => {
   if (typeof expression === "symbol") {
     switch (expression) {
@@ -179,9 +181,15 @@ const evaluateNode = (
       return;
     }
 
-    return command.fn(expression, fullPCM, symbolTable, envelope);
+    return command.fn(expression, fullPCM, symbolTable, envelope, modifiers);
   } else {
-    const func = evaluateNode(expression[0], fullPCM, symbolTable, envelope);
+    const func = evaluateNode(
+      expression[0],
+      fullPCM,
+      symbolTable,
+      envelope,
+      modifiers,
+    );
     if (!func || !func.isLambda) {
       console.error(
         `Shvi: ${Symbol.keyFor(expression)} is not a command or a lambda`,
@@ -205,12 +213,21 @@ const evaluateNode = (
       keys.map((
         key,
         i,
-      ) => [key, evaluateNode(values[i], fullPCM, symbolTable, envelope)]),
+      ) => [
+        key,
+        evaluateNode(values[i], fullPCM, symbolTable, envelope, modifiers),
+      ]),
     );
 
     const newSymbolTable = new SymbolTable(symbolTableUpdate, func.closure);
 
-    return evaluateNode(func.root, fullPCM, newSymbolTable, envelope);
+    return evaluateNode(
+      func.root,
+      fullPCM,
+      newSymbolTable,
+      envelope,
+      modifiers,
+    );
   }
 };
 
@@ -222,7 +239,7 @@ const evaluate = (syntaxTree, symbolTable, fullPCM) => {
       50,
       0,
       50,
-    ])
+    ], {})
   );
 
   return result;
