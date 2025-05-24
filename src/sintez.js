@@ -16,6 +16,7 @@ const waveFunctions = {
     2 * (x / Math.PI - Math.floor(x / Math.PI + 0.5)), // Sawtooth wave
   [Symbol.for("pulse")]: (x, width = 0.5) =>
     (Math.sin(x) >= Math.cos(width * Math.PI)) ? 1 : -1, // Pulse wave (with pulse width control)
+  [Symbol.for("noise")]: () => (Math.random() * 2 - 1), // Noise wave (white noise)
 };
 
 import globals from "./globals.js";

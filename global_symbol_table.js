@@ -157,6 +157,15 @@ const globalSymbolTable = new SymbolTable({
   [Symbol.for("B8")]: 7902.13,
 
   // Instruments
-  // attack, decay,release (in ms)
+  // function, attack, decay, release (in ms)
   [Symbol.for("piano")]: [Symbol.for("sine"), 10, 50, 200],
+  [Symbol.for("organ")]: [Symbol.for("square"), 5, 80, 300],
+  [Symbol.for("violin")]: [Symbol.for("sawtooth"), 20, 100, 400],
+  [Symbol.for("flute")]: [Symbol.for("sine"), 15, 60, 250],
+  [Symbol.for("guitar")]: [Symbol.for("triangle"), 8, 70, 150],
+  [Symbol.for("bass")]: [Symbol.for("square"), 5, 40, 100],
+  [Symbol.for("synth-pad")]: [Symbol.for("sawtooth"), 100, 300, 1000],
+  [Symbol.for("bell")]: [Symbol.for("sine"), 1, 200, 500],
+  [Symbol.for("drum")]: [Symbol.for("noise"), 2, 20, 80],
+  [Symbol.for("choir")]: [Symbol.for("triangle"), 30, 200, 700],
 }, undefined);
