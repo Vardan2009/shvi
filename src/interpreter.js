@@ -14,12 +14,23 @@ const lispCompare = (a, b) => {
   return normalize(a) === normalize(b);
 };
 
+const toLispPrintable = (val) => {
+  if (val === true) return "T";
+  if (isFalsy(val)) return "NIL";
+  if (Array.isArray(val)) {
+    let str = "(";
+    val.forEach((v, i) =>
+      str += (typeof v === "symbol" ? Symbol.keyFor(v) : v) +
+        ((i != val.length - 1) ? " " : "")
+    );
+    str += ")";
+    return str;
+  }
+  return val;
+};
+
 const lispPrint = (...vals) => {
-  console.log(...vals.map((val) => {
-    if (val === true) return "T";
-    if (isFalsy(val)) return "nil";
-    return val;
-  }));
+  console.log(...vals.map(toLispPrintable));
 };
 
 const atom = (name) => Symbol.for(name.trim());
@@ -36,12 +47,26 @@ const tokenize = (input) => {
     };
 
     if (!currentChar) {
-      return tokenBuffer.length > 0
-        ? [...currentScope, typeify(tokenBuffer)]
-        : currentScope;
+      const result = deSugar(
+        tokenBuffer.length > 0
+          ? [...currentScope, typeify(tokenBuffer)]
+          : currentScope,
+      );
+
+      return result;
     }
 
     switch (currentChar) {
+      case "'": {
+        const updatedCurrentScope = tokenBuffer.length > 0
+          ? [...currentScope, typeify(tokenBuffer), atom("'")]
+          : [...currentScope, atom("'")];
+
+        return loop(
+          [updatedCurrentScope, parentScope, ...outerScopes],
+          restChars,
+        );
+      }
       case "(": {
         const updatedCurrentScope = tokenBuffer.length > 0
           ? [...currentScope, typeify(tokenBuffer)]
@@ -89,6 +114,22 @@ const tokenize = (input) => {
   };
 
   return loop([[]], graphemes);
+};
+
+const deSugar = (tokens) => {
+  const newTokens = [];
+
+  for (let i = 0; i < tokens.length; ++i) {
+    if (typeof tokens[i] === "symbol" && tokens[i] == atom("'")) {
+      newTokens.push([atom("quote"), tokens[++i]]);
+    } else if (Array.isArray(tokens[i])) {
+      newTokens.push(deSugar(tokens[i]));
+    } else {
+      newTokens.push(tokens[i]);
+    }
+  }
+
+  return newTokens;
 };
 
 const evaluateNode = (
