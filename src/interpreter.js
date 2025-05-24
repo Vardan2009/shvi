@@ -190,9 +190,10 @@ const evaluateNode = (
       envelope,
       modifiers,
     );
+
     if (!func || !func.isLambda) {
       console.error(
-        `Shvi: ${Symbol.keyFor(expression)} is not a command or a lambda`,
+        `Shvi: ${toLispPrintable(func)} not a command or a lambda`,
       );
       return;
     }
@@ -201,7 +202,7 @@ const evaluateNode = (
 
     if (func.arguments.length != givenArguments.length) {
       console.error(
-        `Shvi: expected ${func.arguments.length} arguments, got ${givenArguments.length}`,
+        `Shvi: expected ${func.arguments.length} arguments for lambda, got ${givenArguments.length}`,
       );
       return;
     }
