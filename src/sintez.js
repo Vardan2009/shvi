@@ -134,7 +134,7 @@ function generatePCM(
     }
 
     const sample = amplitude * adsrFactor *
-      audioFunc(2 * Math.PI * frequency * t + vibrato);
+      audioFunc(2 * Math.PI * frequency * t + vibrato * adsrFactor);
 
     adsSamples.push(sample);
   }
