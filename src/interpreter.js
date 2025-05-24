@@ -20,7 +20,7 @@ const toLispPrintable = (val) => {
   if (Array.isArray(val)) {
     let str = "(";
     val.forEach((v, i) =>
-      str += (typeof v === "symbol" ? Symbol.keyFor(v) : v) +
+      str += toLispPrintable(v) +
         ((i != val.length - 1) ? " " : "")
     );
     str += ")";
