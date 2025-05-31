@@ -38,7 +38,7 @@ const continuousPCMStream = async (filePath) => {
   };
   evaluate(syntaxTree, globalSymbolTable, pcm);
 
-  const numChannels = 2;
+  const numChannels = 1;
 
   const bitsPerSample = globals.WAV_BITS;
   const bytesPerSample = globals.WAV_BITS / 8;
