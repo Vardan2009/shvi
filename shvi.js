@@ -8,7 +8,7 @@ import { globalSymbolTable } from "./global_symbol_table.js";
 console.error = (...datas) =>
   console.log(...datas.map((data) => `\x1b[31m${data}\x1b[0m`));
 
-const processFile = async (filePath) => {
+const processFile = async (filePath, outputPath) => {
   try {
     const fileContent = await Deno.readTextFile(filePath);
     const syntaxTree = tokenize(fileContent);
@@ -19,8 +19,8 @@ const processFile = async (filePath) => {
     evaluate(syntaxTree, globalSymbolTable, pcm);
 
     if (pcm.pcmArray.length > 0) {
-      encodeWAV(pcm.pcmArray);
-      play("output.wav");
+      encodeWAV(pcm.pcmArray, outputPath);
+      play(outputPath);
     }
   } catch (err) {
     console.error("Shvi: Error processing file:", err);
@@ -65,12 +65,34 @@ const runREPL = () => {
 };
 
 const main = async () => {
-  if (Deno.args.length > 0) {
-    const filePath = Deno.args[0];
-    try {
-      await processFile(filePath);
-    } catch (err) {
-      console.error("Shvi: Error processing file:", err);
+  let filePath = undefined;
+  let outputPath = "output.wav";
+  let stream = false;
+
+  for (let i = 0; i < Deno.args.length; ++i) {
+    switch (Deno.args[i]) {
+      case "-o":
+        outputPath = Deno.args[++i];
+        break;
+      case "-s":
+        stream = true;
+        break;
+      default:
+        filePath = Deno.args[i];
+        break;
+    }
+  }
+
+  if (filePath) {
+    if (stream) {
+      console.log("Streaming", filePath);
+      console.error("Not Implemented");
+    } else {
+      try {
+        await processFile(filePath, outputPath);
+      } catch (err) {
+        console.error("Shvi: Error processing file:", err);
+      }
     }
   } else runREPL();
 };
