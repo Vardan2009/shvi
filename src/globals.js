@@ -1,5 +1,5 @@
 export default {
-  SHVI_VERSION: "0.7",
+  SHVI_VERSION: "0.7JS",
 
   SAMPLE_RATE: 44100,
 
